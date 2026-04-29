@@ -1,7 +1,7 @@
 // HUD (vidas, pontos, fase). Pequeno, isolado, importável de qualquer lugar
 // sem criar dependência circular.
 
-import { state } from './state';
+import { state } from './core/state';
 import { byId } from './dom';
 
 export function updateHUD(): void {

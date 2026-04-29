@@ -1,7 +1,7 @@
 // Definição das fases do protótipo (8 fases — curva 4-3-2-1 reduzida).
 // Idealmente, fases viram arquivos JSON editáveis por pedagogo (Dia 3).
 
-import type { Level } from '../types';
+import type { Level } from '../core/types';
 
 export const LEVELS: Level[] = [
   {

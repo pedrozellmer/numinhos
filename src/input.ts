@@ -3,15 +3,15 @@
 // memória ao longo da partida. Agora há listeners globais únicos e cada
 // carta só registra os handlers de início (touchstart/mousedown).
 
-import type { Card } from './types';
-import { state } from './state';
+import type { Card } from './core/types';
+import { state } from './core/state';
 import { byId } from './dom';
-import { applyCard, operationLabel, colorForOp } from './operations';
+import { applyCard, operationLabel, colorForOp } from './core/operations';
 import { findEnemyNear, pointToCanvas } from './render';
 import { spawnConfetti, spawnFloatingText, vibrate } from './effects';
 import { refillHand, removeCard } from './hand';
 import { updateHUD } from './hud';
-import type { Enemy } from './types';
+import type { Enemy } from './core/types';
 
 const HIT_RADIUS = 50;
 

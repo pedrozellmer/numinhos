@@ -1,9 +1,9 @@
 // Desenho do canvas: linha de defesa, inimigos, partículas, textos flutuantes.
 
 import { canvas, ctx, view, defenseLineY } from './canvas';
-import { state } from './state';
+import { state } from './core/state';
 import { colorFor } from './content/mascots';
-import type { Enemy } from './types';
+import type { Enemy } from './core/types';
 
 export function draw(): void {
   ctx.clearRect(0, 0, view.W, view.H);

@@ -5,14 +5,14 @@ import './styles/globals.css';
 import './styles/game.css';
 import './styles/screens.css';
 
-import { state } from './state';
+import { state } from './core/state';
 import { byId, hideAllScreens, setDisplay } from './dom';
 import { LEVELS } from './content/levels';
 import { resizeCanvas } from './canvas';
 import { installGlobalDragListeners } from './input';
 import { renderMenu, backToMenu } from './ui';
 import { startLevel, gameLoop, exitToMenu } from './game';
-import { saveProgress } from './persistence';
+import { saveProgress } from './core/persistence';
 import { flashMsg } from './effects';
 
 function nextLevelOrMenu(): void {

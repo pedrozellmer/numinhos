@@ -1,8 +1,8 @@
 // Coração do jogo: iniciar fase, spawn de inimigos, loop principal,
 // detecção de vitória/derrota.
 
-import type { EnemySpec, Level } from './types';
-import { state } from './state';
+import type { EnemySpec, Level } from './core/types';
+import { state } from './core/state';
 import { byId, hideAllScreens, setDisplay } from './dom';
 import { resizeCanvas, view, defenseLineY } from './canvas';
 import { draw } from './render';
@@ -11,7 +11,7 @@ import { mascotFor } from './content/mascots';
 import { refillHand } from './hand';
 import { updateHUD, setLevelLabel } from './hud';
 import { showTutorial, showWinScreen, showLoseScreen } from './ui';
-import { saveProgress } from './persistence';
+import { saveProgress } from './core/persistence';
 
 export function startLevel(lvl: Level): void {
   state.currentLevel = lvl;

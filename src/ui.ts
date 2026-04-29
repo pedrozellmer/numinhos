@@ -1,9 +1,9 @@
 // UI fora da arena: menu/mapa, tutorial, modais de vitória/derrota.
 
-import { state } from './state';
+import { state } from './core/state';
 import { byId, showScreen, hideAllScreens } from './dom';
 import { LEVELS } from './content/levels';
-import type { Level } from './types';
+import type { Level } from './core/types';
 
 const DIFF_EMOJIS = ['🟢', '🟡', '🟠', '🔴'];
 

@@ -1,6 +1,6 @@
 // Partículas, textos flutuantes, shake e mensagens de flash.
 
-import { state } from './state';
+import { state } from './core/state';
 import { byId } from './dom';
 
 const CONFETTI_COLORS = ['#ff6b6b', '#ffd166', '#43d177', '#6c8dff', '#9d4edd', '#ff8e3c'];

@@ -1,9 +1,9 @@
 // Mão de cartas: cria/refilla, cria DOM das cartas, conecta drag.
 
-import type { Card } from './types';
-import { state } from './state';
+import type { Card } from './core/types';
+import { state } from './core/state';
 import { byId } from './dom';
-import { cssClassForOp } from './operations';
+import { cssClassForOp } from './core/operations';
 import { bindCardDrag } from './input';
 
 export function refillHand(initial = false): void {
