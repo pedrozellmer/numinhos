@@ -24,6 +24,7 @@ export const LEVELS: Level[] = [
       { value: 4, delay: 11.0, speed: 0.16 },
     ],
     tutorial: 'Arraste uma carta vermelha (-) no inimigo até zerar o número!',
+    bncc: ['EF01MA08'],
   },
   {
     id: 2,
@@ -46,6 +47,7 @@ export const LEVELS: Level[] = [
       { value: 5, delay: 12.5, speed: 0.18 },
     ],
     tutorial: 'Cartas verdes (+) somam — use quando precisar ajustar o resultado!',
+    bncc: ['EF01MA08'],
   },
   {
     id: 3,
@@ -68,6 +70,7 @@ export const LEVELS: Level[] = [
       { value: 8, delay: 10.0, speed: 0.20 },
       { value: 4, delay: 13.5, speed: 0.20 },
     ],
+    bncc: ['EF01MA08'],
   },
   {
     id: 4,
@@ -90,6 +93,7 @@ export const LEVELS: Level[] = [
       { value: 10, delay: 9.0, speed: 0.22 },
       { value: 8, delay: 12.0, speed: 0.24 },
     ],
+    bncc: ['EF01MA08', 'EF02MA05'],
   },
   {
     id: 5,
@@ -113,6 +117,7 @@ export const LEVELS: Level[] = [
       { value: 8, delay: 10.0, speed: 0.26 },
       { value: 10, delay: 12.5, speed: 0.26 },
     ],
+    bncc: ['EF02MA05'],
   },
   {
     id: 6,
@@ -137,6 +142,7 @@ export const LEVELS: Level[] = [
       { value: 11, delay: 13.5, speed: 0.26 },
     ],
     tutorial: 'Cartas amarelas MULTIPLICAM. ×0 zera direto, ×2 dobra (cuidado!)',
+    bncc: ['EF02MA05', 'EF03MA07'],
   },
   {
     id: 7,
@@ -161,6 +167,7 @@ export const LEVELS: Level[] = [
       { value: 11, delay: 12.5, speed: 0.28 },
       { value: 14, delay: 15.0, speed: 0.28 },
     ],
+    bncc: ['EF02MA05', 'EF03MA07'],
   },
   {
     id: 8,
@@ -186,5 +193,6 @@ export const LEVELS: Level[] = [
       { value: 21, delay: 12.5, speed: 0.28 },
       { value: 15, delay: 14.5, speed: 0.30 },
     ],
+    bncc: ['EF02MA05', 'EF03MA07'],
   },
 ];

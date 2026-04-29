@@ -3,9 +3,12 @@
 
 import type { Card, Enemy, FloatingText, Level, Particle, Progress, DragState } from './types';
 import { loadProgress } from './persistence';
+import type { BnccProgress } from './bncc';
+import { loadBnccProgress } from './bncc';
 
 export interface GameState {
   progress: Progress;
+  bnccProgress: BnccProgress;
   currentLevel: Level | null;
   enemies: Enemy[];
   cards: Card[];
@@ -26,6 +29,7 @@ export interface GameState {
 
 export const state: GameState = {
   progress: loadProgress(),
+  bnccProgress: loadBnccProgress(),
   currentLevel: null,
   enemies: [],
   cards: [],

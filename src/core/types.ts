@@ -30,6 +30,8 @@ export interface Level {
   handPool: CardProto[];
   enemies: EnemySpec[];
   tutorial?: string;
+  // Habilidades BNCC exercitadas pela fase. Ver src/core/bncc.ts.
+  bncc?: string[];
 }
 
 export interface Enemy {

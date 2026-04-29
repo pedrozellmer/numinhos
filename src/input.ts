@@ -12,6 +12,7 @@ import { spawnConfetti, spawnFloatingText, vibrate } from './effects';
 import { refillHand, removeCard } from './hand';
 import { updateHUD } from './hud';
 import type { Enemy } from './core/types';
+import { recordCardApplication, saveBnccProgress } from './core/bncc';
 
 const HIT_RADIUS = 50;
 
@@ -86,9 +87,16 @@ function tryApplyCard(card: Card, clientX: number, clientY: number): void {
 }
 
 function performCardOnEnemy(card: Card, enemy: Enemy): void {
-  const newValue = applyCard(enemy.value, card);
+  const oldValue = enemy.value;
+  const newValue = applyCard(oldValue, card);
   enemy.value = newValue;
   enemy.flashTime = 0.4;
+
+  const skills = state.currentLevel?.bncc ?? [];
+  if (skills.length > 0) {
+    recordCardApplication(state.bnccProgress, skills, card, oldValue);
+    saveBnccProgress(state.bnccProgress);
+  }
 
   spawnFloatingText(enemy.x, enemy.y, operationLabel(card), colorForOp(card.op));
   vibrate(20);
