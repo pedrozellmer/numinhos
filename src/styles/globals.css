@@ -1,0 +1,58 @@
+/* Reset, fontes, base e botões compartilhados. */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Fredoka', sans-serif;
+  color: #2d1f3d;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+body {
+  background: linear-gradient(180deg, #ffe8d6 0%, #ffd6e8 50%, #d6e8ff 100%);
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
+  position: relative;
+  min-height: 100vh;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 999px;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.1s;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+  color: white;
+}
+.btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+}
+.btn-primary {
+  background: linear-gradient(180deg, #ff8e3c, #ff6b6b);
+}
+.btn-secondary {
+  background: linear-gradient(180deg, #6c8dff, #4d6dff);
+}
+.btn-ad {
+  background: linear-gradient(180deg, #43d177, #2aa85b);
+}
+.btn-ad::before {
+  content: '▶ ';
+}

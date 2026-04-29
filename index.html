@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#ffe8d6" />
+  <title>Numinhos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+
+  <!-- HUD do jogo -->
+  <div class="hud" id="gameHud" style="display:none">
+    <div class="hud-group">
+      <button class="back-btn" id="backBtn" aria-label="Voltar ao mapa">←</button>
+      <div class="pill level"><span aria-hidden="true">🗺️</span><span id="levelLabel">1</span></div>
+    </div>
+    <div class="hud-group">
+      <div class="pill lives"><span aria-hidden="true">❤️</span><span id="livesLabel">3</span></div>
+      <div class="pill score"><span aria-hidden="true">⭐</span><span id="scoreLabel">0</span></div>
+    </div>
+  </div>
+
+  <!-- Arena -->
+  <div id="wrap" style="display:none">
+    <canvas id="game"></canvas>
+  </div>
+
+  <!-- Mão -->
+  <div class="hand" id="hand" style="display:none"></div>
+
+  <!-- Drag preview -->
+  <div id="dragPreview"></div>
+
+  <!-- Tela Menu / Mapa -->
+  <div class="screen menu show" id="menuScreen">
+    <div class="splash-title">Numinhos</div>
+    <div class="splash-sub">defenda-se com matemática 🎯</div>
+    <div class="splash-mascots">
+      <div class="mascot">🦄</div>
+      <div class="mascot">🐸</div>
+      <div class="mascot">🐙</div>
+    </div>
+    <div class="legend">
+      <div style="font-weight: 700; margin-bottom: 6px;">Dificuldade do bloco</div>
+      <div class="legend-row">
+        <span>🟢 Fácil</span>
+        <span>🟡 Médio</span>
+        <span>🟠 Difícil</span>
+        <span>🔴 Extremo</span>
+      </div>
+    </div>
+    <div class="level-grid" id="levelGrid"></div>
+    <div style="font-size: 11px; opacity: 0.5; margin-bottom: 20px;">protótipo · 8 fases · v0.3</div>
+  </div>
+
+  <!-- Tela vitória -->
+  <div class="screen modal-overlay" id="winScreen">
+    <div class="modal-card">
+      <div class="modal-emoji">🎉</div>
+      <div class="modal-title">Fase Vencida!</div>
+      <div class="modal-sub" id="winSub">Você defendeu o reino</div>
+      <div class="stars-result" id="winStars">⭐⭐⭐</div>
+      <div class="modal-stats">
+        <div class="stat-block">
+          <div class="v" id="winScore">0</div>
+          <div class="l">Pontos</div>
+        </div>
+        <div class="stat-block">
+          <div class="v" id="winLives">3</div>
+          <div class="l">Vidas</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ad" id="winDoubleBtn">Dobrar pontos (ad)</button>
+        <button class="btn btn-primary" id="winNextBtn">Próxima fase</button>
+        <button class="btn btn-secondary" id="winMenuBtn">Mapa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tela derrota -->
+  <div class="screen modal-overlay" id="loseScreen">
+    <div class="modal-card">
+      <div class="modal-emoji">😢</div>
+      <div class="modal-title">Quase!</div>
+      <div class="modal-sub">Tente novamente, você consegue</div>
+      <div class="modal-actions">
+        <button class="btn btn-ad" id="loseReviveBtn">Continuar com 2 vidas (ad)</button>
+        <button class="btn btn-primary" id="loseRetryBtn">Tentar de novo</button>
+        <button class="btn btn-secondary" id="loseMenuBtn">Mapa</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flash-msg" id="flashMsg"></div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
