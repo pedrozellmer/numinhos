@@ -74,6 +74,16 @@ function bindMenuNavigation(): void {
   };
 }
 
+function registerServiceWorker(): void {
+  if (!('serviceWorker' in navigator)) return;
+  if (import.meta.env.DEV) return;
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {
+      // SW é progressivo — silencia falhas pra não quebrar o app.
+    });
+  });
+}
+
 function init(): void {
   installGlobalDragListeners();
   bindMenuNavigation();
@@ -87,6 +97,8 @@ function init(): void {
   renderMenu(startLevel);
 
   requestAnimationFrame(gameLoop);
+
+  registerServiceWorker();
 }
 
 init();
