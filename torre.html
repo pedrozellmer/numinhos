@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0418">
+<title>TORRE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #0a0418;
+    font-family: 'JetBrains Mono', monospace;
+    color: #f0e9ff;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none; user-select: none;
+    touch-action: none;
+    overscroll-behavior: none;
+  }
+  body {
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(255, 0, 128, 0.15), transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(0, 200, 255, 0.18), transparent 50%),
+      linear-gradient(180deg, #0a0418 0%, #1a0833 50%, #0a0418 100%);
+    display: flex; flex-direction: column; align-items: center;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
+  }
+
+  /* HUD */
+  .hud {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px 8px;
+    z-index: 10;
+  }
+  .logo {
+    font-family: 'Major Mono Display', monospace;
+    font-size: 22px;
+    letter-spacing: 0.3em;
+    background: linear-gradient(135deg, #ff0080, #00d4ff);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(255, 0, 128, 0.4);
+  }
+  .stats { display: flex; gap: 16px; font-size: 11px; }
+  .stat { text-align: right; }
+  .stat-label {
+    font-size: 9px; opacity: 0.5; letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .stat-value {
+    font-weight: 700; font-size: 14px;
+    color: #f0e9ff;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-value.combo { color: #ff0080; }
+
+  /* Canvas wrapper */
+  #wrap {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  canvas {
+    display: block;
+    border-radius: 16px;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.05),
+      0 0 60px rgba(255, 0, 128, 0.1),
+      0 0 120px rgba(0, 200, 255, 0.05);
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+  }
+
+  /* Footer hint */
+  .hint {
+    padding: 10px 20px 14px;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    opacity: 0.4;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  /* Game over modal */
+  .modal {
+    position: fixed; inset: 0;
+    background: rgba(10, 4, 24, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 0.4s ease-out;
+  }
+  .modal.show { display: flex; }
+  @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+  .modal-card {
+    background: linear-gradient(135deg, rgba(40, 20, 80, 0.6), rgba(20, 10, 40, 0.8));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 36px 32px;
+    width: 88%;
+    max-width: 340px;
+    text-align: center;
+    box-shadow: 0 20px 80px rgba(255, 0, 128, 0.2);
+  }
+  .modal-title {
+    font-family: 'Major Mono Display', monospace;
+    font-size: 14px;
+    letter-spacing: 0.4em;
+    opacity: 0.6;
+    margin-bottom: 8px;
+  }
+  .modal-score {
+    font-size: 56px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff0080, #00d4ff);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .modal-sub { font-size: 11px; opacity: 0.5; letter-spacing: 0.15em; margin-bottom: 28px; }
+  .modal-best { font-size: 12px; opacity: 0.7; margin-bottom: 24px; }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: linear-gradient(135deg, #ff0080, #ff4080);
+    color: white;
+    box-shadow: 0 8px 24px rgba(255, 0, 128, 0.3);
+  }
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: #f0e9ff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .btn-rewarded {
+    background: linear-gradient(135deg, #00d4ff, #0080ff);
+    color: white;
+    box-shadow: 0 8px 24px rgba(0, 200, 255, 0.3);
+  }
+  .btn-rewarded::before {
+    content: '▶ ';
+    margin-right: 4px;
+  }
+
+  /* Start splash */
+  .splash {
+    position: fixed; inset: 0;
+    background: linear-gradient(180deg, #0a0418, #1a0833);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    transition: opacity 0.5s, transform 0.5s;
+  }
+  .splash.hide { opacity: 0; pointer-events: none; transform: scale(1.05); }
+  .splash-title {
+    font-family: 'Major Mono Display', monospace;
+    font-size: 56px;
+    letter-spacing: 0.4em;
+    background: linear-gradient(135deg, #ff0080, #00d4ff);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { filter: brightness(1) drop-shadow(0 0 20px rgba(255, 0, 128, 0.5)); }
+    50% { filter: brightness(1.2) drop-shadow(0 0 40px rgba(0, 200, 255, 0.6)); }
+  }
+  .splash-sub {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    opacity: 0.5;
+    text-transform: uppercase;
+    margin-bottom: 60px;
+  }
+  .splash-instructions {
+    font-size: 11px;
+    line-height: 2;
+    opacity: 0.7;
+    text-align: center;
+    letter-spacing: 0.1em;
+    margin-bottom: 50px;
+    max-width: 280px;
+  }
+  .splash-instructions span {
+    color: #ff0080;
+    font-weight: 700;
+  }
+  .splash-tap {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    opacity: 0.6;
+    text-transform: uppercase;
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.9; } }
+
+  /* Combo flash */
+  .combo-flash {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Major Mono Display', monospace;
+    font-size: 48px;
+    font-weight: 700;
+    color: #ff0080;
+    text-shadow: 0 0 40px rgba(255, 0, 128, 0.8);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 50;
+    letter-spacing: 0.2em;
+  }
+  .combo-flash.show {
+    animation: comboShow 0.8s ease-out;
+  }
+  @keyframes comboShow {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    100% { opacity: 0; transform: translate(-50%, -80%) scale(1); }
+  }
+</style>
+</head>
+<body>
+  <div class="hud">
+    <div class="logo">TORRE</div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Combo</div>
+        <div class="stat-value combo" id="combo">×1</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Score</div>
+        <div class="stat-value" id="score">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="wrap">
+    <canvas id="game"></canvas>
+  </div>
+
+  <div class="hint">arraste · solte · funda</div>
+
+  <!-- Splash -->
+  <div class="splash" id="splash">
+    <div class="splash-title">TORRE</div>
+    <div class="splash-sub">protótipo · v0.1</div>
+    <div class="splash-instructions">
+      arraste a peça<br>
+      <span>iguais se fundem</span><br>
+      construa a torre mais alta<br>
+      antes que ela alcance o topo
+    </div>
+    <div class="splash-tap">toque para começar</div>
+  </div>
+
+  <!-- Game over modal -->
+  <div class="modal" id="gameOverModal">
+    <div class="modal-card">
+      <div class="modal-title">FIM</div>
+      <div class="modal-score" id="finalScore">0</div>
+      <div class="modal-sub">pontos</div>
+      <div class="modal-best">Recorde: <span id="bestScore">0</span></div>
+      <button class="btn btn-rewarded" id="continueBtn">Continuar (assistir ad)</button>
+      <button class="btn btn-primary" id="restartBtn">Jogar de novo</button>
+    </div>
+  </div>
+
+  <div class="combo-flash" id="comboFlash"></div>
+
+<script>
+(() => {
+  // ============ CONFIG ============
+  const COLS = 5;
+  const ROWS = 9;
+  const COLORS = [
+    null,
+    { bg: '#ff0080', glow: 'rgba(255, 0, 128, 0.6)', text: '#fff' },     // 2
+    { bg: '#ff4080', glow: 'rgba(255, 64, 128, 0.6)', text: '#fff' },    // 4
+    { bg: '#c040ff', glow: 'rgba(192, 64, 255, 0.6)', text: '#fff' },    // 8
+    { bg: '#8040ff', glow: 'rgba(128, 64, 255, 0.6)', text: '#fff' },    // 16
+    { bg: '#4080ff', glow: 'rgba(64, 128, 255, 0.7)', text: '#fff' },    // 32
+    { bg: '#00d4ff', glow: 'rgba(0, 212, 255, 0.7)', text: '#0a0418' },  // 64
+    { bg: '#00ffaa', glow: 'rgba(0, 255, 170, 0.8)', text: '#0a0418' },  // 128
+    { bg: '#ffd400', glow: 'rgba(255, 212, 0, 0.9)', text: '#0a0418' },  // 256
+    { bg: '#ff8800', glow: 'rgba(255, 136, 0, 0.9)', text: '#fff' },     // 512
+    { bg: '#ff0040', glow: 'rgba(255, 0, 64, 1.0)', text: '#fff' },      // 1024
+    { bg: '#ffffff', glow: 'rgba(255, 255, 255, 1.0)', text: '#0a0418' },// 2048+
+  ];
+
+  // ============ CANVAS SETUP ============
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  let CELL = 56;
+  let GAP = 4;
+  let W = 0, H = 0;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize() {
+    const wrap = document.getElementById('wrap');
+    const wrapW = wrap.clientWidth;
+    const wrapH = wrap.clientHeight;
+    const padding = 16;
+    const maxW = wrapW - padding * 2;
+    const maxH = wrapH - padding * 2;
+    // Compute cell size to fit
+    const cellByW = Math.floor((maxW - GAP * (COLS + 1)) / COLS);
+    const cellByH = Math.floor((maxH - GAP * (ROWS + 1)) / ROWS);
+    CELL = Math.min(cellByW, cellByH, 64);
+    W = CELL * COLS + GAP * (COLS + 1);
+    H = CELL * ROWS + GAP * (ROWS + 1);
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ============ GAME STATE ============
+  // grid[row][col] = number (power of 2) or 0
+  // row 0 = top
+  let grid = [];
+  let score = 0;
+  let best = parseInt(localStorage.getItem('torre_best') || '0', 10);
+  let combo = 1;
+  let gameOver = false;
+  let dropping = null;     // { col, row(float), value, vy }
+  let nextValue = 2;
+  let dragging = false;
+  let dragStartX = 0;
+  let dragCol = 0;
+  let particles = [];
+  let shake = 0;
+  let mergeAnims = []; // { row, col, t, value }
+  let started = false;
+
+  function emptyGrid() {
+    return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+  }
+
+  function pickStartingValue() {
+    // Mostly 2s and 4s, occasional 8
+    const r = Math.random();
+    if (r < 0.7) return 2;
+    if (r < 0.95) return 4;
+    return 8;
+  }
+
+  function reset() {
+    grid = emptyGrid();
+    score = 0;
+    combo = 1;
+    gameOver = false;
+    particles = [];
+    mergeAnims = [];
+    spawnPiece();
+    updateHUD();
+  }
+
+  function spawnPiece() {
+    const v = nextValue;
+    nextValue = pickStartingValue();
+    dropping = {
+      col: Math.floor(COLS / 2),
+      row: -0.5,
+      value: v,
+      vy: 0.012, // rows per frame baseline (slower)
+    };
+  }
+
+  function updateHUD() {
+    document.getElementById('score').textContent = score.toLocaleString('pt-BR');
+    document.getElementById('combo').textContent = '×' + combo;
+  }
+
+  // ============ GAME LOGIC ============
+  function landingRow(col) {
+    // returns the deepest empty row in `col`, or -1 if column is full
+    for (let r = ROWS - 1; r >= 0; r--) {
+      if (grid[r][col] === 0) return r;
+    }
+    return -1;
+  }
+
+  function dropOne() {
+    if (!dropping) return;
+    const targetRow = landingRow(dropping.col);
+    if (targetRow < 0) {
+      // Column full -> game over
+      endGame();
+      return;
+    }
+    grid[targetRow][dropping.col] = dropping.value;
+    const placedAt = { r: targetRow, c: dropping.col };
+    dropping = null;
+    // Resolve merges starting from placed cell
+    resolveMerges(placedAt);
+  }
+
+  function resolveMerges(start) {
+    // Repeatedly merge any cell that has a neighbor of same value, then apply gravity.
+    // We do it in waves so combos count up.
+    let wave = 0;
+    let totalMerges = 0;
+
+    const step = () => {
+      const merged = findAndMerge();
+      if (merged.length > 0) {
+        wave++;
+        totalMerges += merged.length;
+        // Apply gravity to fill gaps
+        applyGravity();
+        // Schedule next wave
+        setTimeout(step, 180);
+      } else {
+        // Done
+        if (wave > 1) {
+          flashCombo(wave);
+        }
+        combo = 1;
+        if (totalMerges === 0) combo = 1;
+        updateHUD();
+        // Check loss (any column near full)
+        if (isLost()) {
+          endGame();
+        } else {
+          spawnPiece();
+        }
+      }
+    };
+    step();
+  }
+
+  function findAndMerge() {
+    // Find all cells that should merge with at least one orthogonal neighbor of same value.
+    // Group connected components of same value (size >= 2), merge them into one cell at the lowest position.
+    const visited = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
+    const mergedCells = [];
+    let waveScore = 0;
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (visited[r][c] || grid[r][c] === 0) continue;
+        const v = grid[r][c];
+        // BFS
+        const comp = [];
+        const stack = [[r, c]];
+        visited[r][c] = true;
+        while (stack.length) {
+          const [cr, cc] = stack.pop();
+          comp.push([cr, cc]);
+          const neighbors = [[cr-1,cc],[cr+1,cc],[cr,cc-1],[cr,cc+1]];
+          for (const [nr, nc] of neighbors) {
+            if (nr<0||nr>=ROWS||nc<0||nc>=COLS) continue;
+            if (visited[nr][nc]) continue;
+            if (grid[nr][nc] === v) {
+              visited[nr][nc] = true;
+              stack.push([nr, nc]);
+            }
+          }
+        }
+        if (comp.length >= 2) {
+          // Find lowest cell (highest row index); break ties with col closest to dropped col? just use lowest, then leftmost.
+          comp.sort((a, b) => (b[0] - a[0]) || (a[1] - b[1]));
+          const [tr, tc] = comp[0];
+          // The merged value: doubles for each pair. With N>=2 same values, result = v * (smallest power of 2 >= N).
+          // Simpler: result = v * 2 if N==2, v*4 if N==3 or 4, v*8 if N up to 8, etc. Use floor(log2)+1 doublings? Common merge games: each pair doubles, so N copies -> v * N rounded to next power of 2 >= N? We'll do: result = nextPow2(N) * v (so 2->2v, 3->4v, 4->4v, 5->8v...)
+          const factor = nextPow2(comp.length);
+          const newVal = v * factor;
+          // Clear all cells in comp
+          for (const [rr, cc2] of comp) grid[rr][cc2] = 0;
+          // Set merged value at lowest
+          grid[tr][tc] = newVal;
+          mergedCells.push({ r: tr, c: tc, v: newVal });
+          waveScore += newVal * comp.length;
+          // Particles
+          spawnMergeParticles(tr, tc, newVal);
+          // Merge anim
+          mergeAnims.push({ row: tr, col: tc, t: 0, value: newVal });
+          shake = Math.min(shake + 4 + Math.log2(newVal), 20);
+        }
+      }
+    }
+    if (mergedCells.length > 0) {
+      score += waveScore * combo;
+      combo += 1;
+      updateHUD();
+    }
+    return mergedCells;
+  }
+
+  function nextPow2(n) {
+    let p = 1;
+    while (p < n) p *= 2;
+    return p;
+  }
+
+  function applyGravity() {
+    for (let c = 0; c < COLS; c++) {
+      const stack = [];
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (grid[r][c] !== 0) stack.push(grid[r][c]);
+      }
+      for (let r = ROWS - 1; r >= 0; r--) {
+        grid[r][c] = stack.length ? stack.shift() : 0;
+      }
+    }
+  }
+
+  function isLost() {
+    // Game over if top row has any block AND the next piece can't be placed
+    for (let c = 0; c < COLS; c++) {
+      if (grid[0][c] !== 0) return true;
+    }
+    return false;
+  }
+
+  function endGame() {
+    if (gameOver) return;
+    gameOver = true;
+    dropping = null;
+    if (score > best) {
+      best = score;
+      localStorage.setItem('torre_best', String(best));
+    }
+    document.getElementById('finalScore').textContent = score.toLocaleString('pt-BR');
+    document.getElementById('bestScore').textContent = best.toLocaleString('pt-BR');
+    setTimeout(() => {
+      document.getElementById('gameOverModal').classList.add('show');
+    }, 600);
+  }
+
+  // ============ PARTICLES ============
+  function spawnMergeParticles(row, col, value) {
+    const x = GAP + col * (CELL + GAP) + CELL / 2;
+    const y = GAP + row * (CELL + GAP) + CELL / 2;
+    const tier = Math.min(Math.log2(value), COLORS.length - 1);
+    const color = COLORS[Math.floor(tier)] || COLORS[1];
+    const count = 14 + Math.floor(Math.log2(value));
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.3;
+      const speed = 1.5 + Math.random() * 2.5;
+      particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1,
+        decay: 0.02 + Math.random() * 0.02,
+        color: color.bg,
+        size: 2 + Math.random() * 3,
+      });
+    }
+  }
+
+  function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.08;
+      p.life -= p.decay;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  function drawParticles() {
+    for (const p of particles) {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ============ COMBO FLASH ============
+  function flashCombo(n) {
+    const el = document.getElementById('comboFlash');
+    el.textContent = `COMBO ×${n}`;
+    el.classList.remove('show');
+    void el.offsetWidth; // restart animation
+    el.classList.add('show');
+    if (navigator.vibrate) navigator.vibrate(30);
+  }
+
+  // ============ RENDERING ============
+  function colorFor(value) {
+    const tier = Math.log2(value);
+    const idx = Math.min(Math.floor(tier), COLORS.length - 1);
+    return COLORS[idx] || COLORS[COLORS.length - 1];
+  }
+
+  function drawCell(x, y, value, scale = 1, alpha = 1) {
+    if (value === 0) return;
+    const c = colorFor(value);
+    const size = CELL * scale;
+    const ox = x + (CELL - size) / 2;
+    const oy = y + (CELL - size) / 2;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    // Glow
+    ctx.shadowColor = c.glow;
+    ctx.shadowBlur = 16 + Math.log2(value) * 2;
+    ctx.fillStyle = c.bg;
+    roundRect(ctx, ox, oy, size, size, 8);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    // Inner highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    roundRect(ctx, ox + 2, oy + 2, size - 4, size * 0.35, 6);
+    ctx.fill();
+    // Number
+    ctx.fillStyle = c.text;
+    const fontSize = value < 100 ? size * 0.46 : value < 1000 ? size * 0.38 : size * 0.30;
+    ctx.font = `700 ${fontSize}px 'JetBrains Mono', monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(value), ox + size / 2, oy + size / 2 + size * 0.02);
+    ctx.restore();
+  }
+
+  function drawGrid() {
+    // Background grid cells
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const x = GAP + c * (CELL + GAP);
+        const y = GAP + r * (CELL + GAP);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
+        roundRect(ctx, x, y, CELL, CELL, 8);
+        ctx.fill();
+      }
+    }
+    // Danger line (top row warning)
+    if (hasBlocksInRow(1)) {
+      const y = GAP + 1 * (CELL + GAP) - GAP/2;
+      ctx.strokeStyle = 'rgba(255, 0, 64, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    // Cells
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const v = grid[r][c];
+        if (v === 0) continue;
+        const x = GAP + c * (CELL + GAP);
+        const y = GAP + r * (CELL + GAP);
+        // Check merge anim
+        const anim = mergeAnims.find(a => a.row === r && a.col === c);
+        let scale = 1;
+        if (anim) {
+          scale = 1 + Math.sin(anim.t * Math.PI) * 0.18;
+        }
+        drawCell(x, y, v, scale);
+      }
+    }
+    // Update merge anims
+    for (let i = mergeAnims.length - 1; i >= 0; i--) {
+      mergeAnims[i].t += 0.08;
+      if (mergeAnims[i].t >= 1) mergeAnims.splice(i, 1);
+    }
+    // Dropping piece
+    if (dropping) {
+      const x = GAP + dropping.col * (CELL + GAP);
+      const y = GAP + dropping.row * (CELL + GAP);
+      // Ghost: show landing position
+      const lr = landingRow(dropping.col);
+      if (lr >= 0) {
+        const gx = GAP + dropping.col * (CELL + GAP);
+        const gy = GAP + lr * (CELL + GAP);
+        ctx.save();
+        ctx.globalAlpha = 0.18;
+        const c = colorFor(dropping.value);
+        ctx.strokeStyle = c.bg;
+        ctx.lineWidth = 2;
+        roundRect(ctx, gx + 2, gy + 2, CELL - 4, CELL - 4, 8);
+        ctx.stroke();
+        ctx.restore();
+      }
+      drawCell(x, y, dropping.value);
+    }
+  }
+
+  function hasBlocksInRow(row) {
+    if (row < 0 || row >= ROWS) return false;
+    return grid[row].some(v => v !== 0);
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  // ============ INPUT ============
+  function getCanvasX(clientX) {
+    const rect = canvas.getBoundingClientRect();
+    return clientX - rect.left;
+  }
+
+  function colFromX(x) {
+    const col = Math.floor((x - GAP) / (CELL + GAP));
+    return Math.max(0, Math.min(COLS - 1, col));
+  }
+
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (gameOver || !dropping) return;
+    const t = e.touches[0];
+    dragging = true;
+    dragStartX = getCanvasX(t.clientX);
+    dropping.col = colFromX(dragStartX);
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (!dragging || !dropping) return;
+    const t = e.touches[0];
+    const x = getCanvasX(t.clientX);
+    dropping.col = colFromX(x);
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    if (!dragging || !dropping) return;
+    dragging = false;
+    // Quick drop on release
+    quickDrop();
+  }, { passive: false });
+
+  // Mouse fallback
+  canvas.addEventListener('mousedown', (e) => {
+    if (gameOver || !dropping) return;
+    dragging = true;
+    dragStartX = getCanvasX(e.clientX);
+    dropping.col = colFromX(dragStartX);
+  });
+  canvas.addEventListener('mousemove', (e) => {
+    if (!dragging || !dropping) return;
+    dropping.col = colFromX(getCanvasX(e.clientX));
+  });
+  canvas.addEventListener('mouseup', () => {
+    if (!dragging || !dropping) return;
+    dragging = false;
+    quickDrop();
+  });
+
+  function quickDrop() {
+    if (!dropping) return;
+    // Animate drop quickly
+    dropping.vy = 0.8;
+  }
+
+  // ============ MAIN LOOP ============
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min((now - last) / 16.67, 3); // cap delta
+    last = now;
+
+    // Shake decay
+    if (shake > 0) shake = Math.max(0, shake - 0.5);
+
+    // Update dropping
+    if (dropping && !gameOver) {
+      // Gentle gravity acceleration (slower)
+      dropping.vy = Math.min(dropping.vy + 0.0004, 0.8);
+      dropping.row += dropping.vy * dt;
+      const lr = landingRow(dropping.col);
+      if (lr < 0) {
+        endGame();
+      } else if (dropping.row >= lr) {
+        dropping.row = lr;
+        // Snap and place
+        dropOne();
+      }
+    }
+
+    updateParticles();
+
+    // Render
+    ctx.clearRect(0, 0, W, H);
+    ctx.save();
+    if (shake > 0) {
+      ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+    }
+    drawGrid();
+    drawParticles();
+    ctx.restore();
+
+    requestAnimationFrame(loop);
+  }
+
+  // ============ START / RESTART ============
+  function startGame() {
+    document.getElementById('splash').classList.add('hide');
+    started = true;
+    reset();
+  }
+
+  document.getElementById('splash').addEventListener('click', startGame);
+  document.getElementById('splash').addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startGame();
+  }, { passive: false });
+
+  document.getElementById('restartBtn').addEventListener('click', () => {
+    document.getElementById('gameOverModal').classList.remove('show');
+    reset();
+  });
+
+  document.getElementById('continueBtn').addEventListener('click', () => {
+    // Simulação de rewarded ad: clear top 2 rows
+    document.getElementById('gameOverModal').classList.remove('show');
+    // Fake "ad watched" feedback
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (grid[r][c] !== 0) {
+          spawnMergeParticles(r, c, grid[r][c]);
+          grid[r][c] = 0;
+        }
+      }
+    }
+    applyGravity();
+    gameOver = false;
+    spawnPiece();
+    shake = 8;
+  });
+
+  // Initialize
+  reset();
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
