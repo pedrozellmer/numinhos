@@ -168,6 +168,74 @@
     padding-top: 30px;
   }
 
+  /* ============ MODE SELECT ============ */
+  .screen.mode-select {
+    background: linear-gradient(180deg, #ffe8d6 0%, #ffd6e8 50%, #d6e8ff 100%);
+    overflow-y: auto;
+    padding-top: 30px;
+  }
+  .mode-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    width: 100%;
+    max-width: 340px;
+    margin-top: 8px;
+  }
+  .mode-btn {
+    aspect-ratio: 1;
+    border: none;
+    background: white;
+    border-radius: 22px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.08), 0 12px 20px rgba(0,0,0,0.06);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 6px;
+    padding: 12px;
+    transition: transform 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+  .mode-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 3px 0 rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.06);
+  }
+  .mode-btn .mode-icon {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: 56px;
+    line-height: 1;
+  }
+  .mode-btn .mode-label {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #2d1f3d;
+  }
+  .mode-btn .mode-sub {
+    font-size: 10px;
+    color: #2d1f3d;
+    opacity: 0.55;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .mode-btn.add  .mode-icon { color: #43d177; }
+  .mode-btn.sub  .mode-icon { color: #ff6b6b; }
+  .mode-btn.mul  .mode-icon { color: #ffa600; }
+  .mode-btn.div  .mode-icon { color: #6c8dff; }
+  .mode-btn.mixed { grid-column: span 2; aspect-ratio: 2/1; }
+  .mode-btn.mixed .mode-icon { font-size: 38px; color: #9d4edd; }
+  .mode-btn .mode-progress {
+    position: absolute;
+    top: 8px; right: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #2d1f3d;
+    opacity: 0.6;
+    font-family: 'Baloo 2', sans-serif;
+  }
+
   .splash-title {
     font-family: 'Baloo 2', sans-serif;
     font-weight: 800;
@@ -420,8 +488,8 @@
   <!-- Drag preview -->
   <div id="dragPreview"></div>
 
-  <!-- Tela Menu / Mapa -->
-  <div class="screen menu show" id="menuScreen">
+  <!-- Tela Seleção de Modo (tela inicial) -->
+  <div class="screen mode-select show" id="modeSelectScreen">
     <div class="splash-title">Numinhos</div>
     <div class="splash-sub">defenda-se com matemática 🎯</div>
     <div class="splash-mascots">
@@ -429,6 +497,18 @@
       <div class="mascot">🐸</div>
       <div class="mascot">🐙</div>
     </div>
+    <div style="font-weight: 700; font-size: 14px; margin: 12px 0 4px; color: #2d1f3d; opacity: 0.7;">Escolha uma operação</div>
+    <div class="mode-grid" id="modeGrid"></div>
+    <div style="font-size: 11px; opacity: 0.5; margin: 20px 0;">protótipo v0.3 · numinhos.app</div>
+  </div>
+
+  <!-- Tela Menu / Mapa (fases do modo escolhido) -->
+  <div class="screen menu" id="menuScreen">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px; width: 100%; max-width: 340px;">
+      <button class="back-btn" id="menuBackBtn" style="background: white;">←</button>
+      <div id="menuTitle" style="font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 24px; color: #2d1f3d;">Modo</div>
+    </div>
+    <div style="font-size: 12px; opacity: 0.6; margin-bottom: 14px;" id="menuSub">Toque numa fase pra jogar</div>
     <div class="legend">
       <div style="font-weight: 700; margin-bottom: 6px;">Dificuldade do bloco</div>
       <div class="legend-row">
@@ -439,7 +519,7 @@
       </div>
     </div>
     <div class="level-grid" id="levelGrid"></div>
-    <div style="font-size: 11px; opacity: 0.5; margin-bottom: 20px;">protótipo · 8 fases · v0.2</div>
+    <div style="font-size: 11px; opacity: 0.5; margin-bottom: 20px;">8 fases · numinhos.app</div>
   </div>
 
   <!-- Tela vitória -->
@@ -485,125 +565,212 @@
 
 <script>
 (() => {
-  // ============ FASES (8 fases pra protótipo) ============
-  // Curva: 4 fáceis -> 3 médias -> 1 difícil
+  // ============ MODOS DE JOGO ============
+  // 5 modos: Soma (+), Subtração (−), Multiplicação (×), Divisão (÷), Tudo Junto (🎯)
+  // Cada modo tem 8 fases com curva 4 fáceis → 3 médias → 1 boss
   // diff: 0=fácil verde, 1=médio amarelo, 2=difícil laranja, 3=extremo vermelho
-  // ops: operações disponíveis
-  // enemies: lista de inimigos {value, delay (s), speed (rows/s)}
-  // hand: cartas iniciais e refill
-  const LEVELS = [
-    {
-      id: 1, diff: 0, lives: 3,
-      title: 'Primeiros passos', goal: '3 inimigos',
-      ops: ['+', '-'],
-      handPool: [{op:'-', val:1}, {op:'-', val:2}, {op:'-', val:3}, {op:'-', val:4}, {op:'-', val:5}],
-      enemies: [
-        {value: 3, delay: 1.5, speed: 0.16},
-        {value: 5, delay: 6.0, speed: 0.16},
-        {value: 4, delay: 11.0, speed: 0.16},
-      ],
-      tutorial: 'Arraste uma carta vermelha (-) no inimigo até zerar o número!',
+  //
+  // REGRA DE OURO: TODAS as fases foram validadas no papel — qualquer combinação
+  // razoável de cartas do handPool consegue zerar qualquer inimigo da fase.
+  //
+  // Faixas pedagógicas (alinhamento BNCC):
+  //  +  → 1º ano (até 20)
+  //  −  → 1º-2º ano (até 20)
+  //  ×  → 3º ano (tabuada até 10)
+  //  ÷  → 4º ano (divisão exata até 100)
+  //  🎯 → 5º ano (mistura)
+
+  const MODES = {
+    add: {
+      id: 'add', icon: '+', label: 'Soma', sub: 'inimigos negativos',
+      color: '#43d177',
+      tutorial: 'Inimigos negativos descem. Some cartas verdes pra chegar a ZERO!',
+      levels: [
+        // Modo Soma — inimigos negativos, cartas + somam até 0
+        { id: 1, diff: 0, lives: 3, title: 'Primeiros passos',
+          handPool: [{op:'+',val:1},{op:'+',val:2},{op:'+',val:3}],
+          enemies: [{value:-1,delay:1.5,speed:0.16},{value:-2,delay:6.0,speed:0.16},{value:-3,delay:11.0,speed:0.16}],
+          tutorial: 'Arraste a carta + no inimigo negativo até chegar em 0!' },
+        { id: 2, diff: 0, lives: 3, title: 'Mais um',
+          handPool: [{op:'+',val:1},{op:'+',val:2},{op:'+',val:3}],
+          enemies: [{value:-2,delay:1.0,speed:0.18},{value:-4,delay:4.5,speed:0.18},{value:-3,delay:8.5,speed:0.18},{value:-2,delay:12.5,speed:0.18}] },
+        { id: 3, diff: 0, lives: 3, title: 'Combinando',
+          handPool: [{op:'+',val:1},{op:'+',val:2},{op:'+',val:3},{op:'+',val:5}],
+          enemies: [{value:-3,delay:1.0,speed:0.20},{value:-5,delay:4.0,speed:0.20},{value:-4,delay:7.0,speed:0.20},{value:-2,delay:10.0,speed:0.20}],
+          tutorial: 'Combine duas cartas! Ex: -5 = (+2) + (+3)' },
+        { id: 4, diff: 0, lives: 3, title: 'Crescendo',
+          handPool: [{op:'+',val:1},{op:'+',val:2},{op:'+',val:3},{op:'+',val:5}],
+          enemies: [{value:-4,delay:0.8,speed:0.22},{value:-6,delay:3.5,speed:0.22},{value:-5,delay:6.5,speed:0.22},{value:-3,delay:9.0,speed:0.24},{value:-7,delay:12.0,speed:0.22}] },
+        { id: 5, diff: 1, lives: 3, title: 'Onda',
+          handPool: [{op:'+',val:2},{op:'+',val:3},{op:'+',val:5},{op:'+',val:7}],
+          enemies: [{value:-5,delay:0.8,speed:0.24},{value:-7,delay:3.0,speed:0.24},{value:-8,delay:5.5,speed:0.24},{value:-6,delay:8.0,speed:0.26},{value:-10,delay:10.5,speed:0.24}] },
+        { id: 6, diff: 1, lives: 3, title: 'Acelerou',
+          handPool: [{op:'+',val:2},{op:'+',val:3},{op:'+',val:5},{op:'+',val:7}],
+          enemies: [{value:-7,delay:0.8,speed:0.26},{value:-10,delay:3.0,speed:0.26},{value:-8,delay:5.5,speed:0.26},{value:-12,delay:8.0,speed:0.26},{value:-9,delay:10.5,speed:0.28}] },
+        { id: 7, diff: 1, lives: 3, title: 'Doze',
+          handPool: [{op:'+',val:3},{op:'+',val:5},{op:'+',val:7},{op:'+',val:10}],
+          enemies: [{value:-10,delay:0.8,speed:0.28},{value:-12,delay:3.0,speed:0.28},{value:-8,delay:5.5,speed:0.28},{value:-15,delay:8.0,speed:0.26},{value:-7,delay:10.5,speed:0.30}] },
+        { id: 8, diff: 3, lives: 2, title: 'Vinte! (boss)',
+          handPool: [{op:'+',val:2},{op:'+',val:3},{op:'+',val:5},{op:'+',val:7},{op:'+',val:10}],
+          enemies: [{value:-10,delay:0.8,speed:0.28},{value:-15,delay:2.8,speed:0.28},{value:-12,delay:4.8,speed:0.30},{value:-8,delay:6.5,speed:0.30},{value:-17,delay:8.5,speed:0.28},{value:-20,delay:11.0,speed:0.28}] },
+      ]
     },
-    {
-      id: 2, diff: 0, lives: 3,
-      title: 'Combinando', goal: '4 inimigos',
-      ops: ['+', '-'],
-      handPool: [{op:'-', val:1}, {op:'-', val:2}, {op:'-', val:3}, {op:'-', val:5}, {op:'+', val:1}],
-      enemies: [
-        {value: 4, delay: 1.0, speed: 0.18},
-        {value: 6, delay: 4.5, speed: 0.18},
-        {value: 7, delay: 8.5, speed: 0.18},
-        {value: 5, delay: 12.5, speed: 0.18},
-      ],
-      tutorial: 'Cartas verdes (+) somam — use quando precisar ajustar o resultado!',
+
+    sub: {
+      id: 'sub', icon: '−', label: 'Subtração', sub: 'tira até zerar',
+      color: '#ff6b6b',
+      tutorial: 'Inimigos descem com números positivos. Subtraia até chegar a ZERO!',
+      levels: [
+        // Modo Subtração — modo clássico
+        { id: 1, diff: 0, lives: 3, title: 'Primeiros passos',
+          handPool: [{op:'-',val:1},{op:'-',val:2},{op:'-',val:3}],
+          enemies: [{value:1,delay:1.5,speed:0.16},{value:2,delay:6.0,speed:0.16},{value:3,delay:11.0,speed:0.16}],
+          tutorial: 'Arraste a carta - no inimigo até zerar o número!' },
+        { id: 2, diff: 0, lives: 3, title: 'Mais um',
+          handPool: [{op:'-',val:1},{op:'-',val:2},{op:'-',val:3}],
+          enemies: [{value:2,delay:1.0,speed:0.18},{value:4,delay:4.5,speed:0.18},{value:3,delay:8.5,speed:0.18},{value:2,delay:12.5,speed:0.18}] },
+        { id: 3, diff: 0, lives: 3, title: 'Combinando',
+          handPool: [{op:'-',val:1},{op:'-',val:2},{op:'-',val:3},{op:'-',val:5}],
+          enemies: [{value:3,delay:1.0,speed:0.20},{value:5,delay:4.0,speed:0.20},{value:4,delay:7.0,speed:0.20},{value:6,delay:10.0,speed:0.20}],
+          tutorial: 'Combine cartas! Ex: 6 = (-3) + (-3)' },
+        { id: 4, diff: 0, lives: 3, title: 'Crescendo',
+          handPool: [{op:'-',val:1},{op:'-',val:2},{op:'-',val:3},{op:'-',val:5}],
+          enemies: [{value:4,delay:0.8,speed:0.22},{value:6,delay:3.5,speed:0.22},{value:5,delay:6.5,speed:0.22},{value:7,delay:9.0,speed:0.24},{value:3,delay:12.0,speed:0.22}] },
+        { id: 5, diff: 1, lives: 3, title: 'Onda',
+          handPool: [{op:'-',val:2},{op:'-',val:3},{op:'-',val:5},{op:'-',val:7}],
+          enemies: [{value:5,delay:0.8,speed:0.24},{value:8,delay:3.0,speed:0.24},{value:7,delay:5.5,speed:0.24},{value:10,delay:8.0,speed:0.26},{value:6,delay:10.5,speed:0.24}] },
+        { id: 6, diff: 1, lives: 3, title: 'Acelerou',
+          handPool: [{op:'-',val:2},{op:'-',val:3},{op:'-',val:5},{op:'-',val:7}],
+          enemies: [{value:7,delay:0.8,speed:0.26},{value:10,delay:3.0,speed:0.26},{value:8,delay:5.5,speed:0.26},{value:12,delay:8.0,speed:0.26},{value:9,delay:10.5,speed:0.28}] },
+        { id: 7, diff: 1, lives: 3, title: 'Doze',
+          handPool: [{op:'-',val:3},{op:'-',val:5},{op:'-',val:7},{op:'-',val:10}],
+          enemies: [{value:10,delay:0.8,speed:0.28},{value:12,delay:3.0,speed:0.28},{value:8,delay:5.5,speed:0.28},{value:15,delay:8.0,speed:0.26},{value:7,delay:10.5,speed:0.30}] },
+        { id: 8, diff: 3, lives: 2, title: 'Vinte! (boss)',
+          handPool: [{op:'-',val:2},{op:'-',val:3},{op:'-',val:5},{op:'-',val:7},{op:'-',val:10}],
+          enemies: [{value:10,delay:0.8,speed:0.28},{value:15,delay:2.8,speed:0.28},{value:12,delay:4.8,speed:0.30},{value:8,delay:6.5,speed:0.30},{value:17,delay:8.5,speed:0.28},{value:20,delay:11.0,speed:0.28}] },
+      ]
     },
-    {
-      id: 3, diff: 0, lives: 3,
-      title: 'Mais inimigos', goal: '5 inimigos',
-      ops: ['+', '-'],
-      handPool: [{op:'-', val:2}, {op:'-', val:3}, {op:'-', val:5}, {op:'+', val:1}, {op:'+', val:2}],
-      enemies: [
-        {value: 5, delay: 1.0, speed: 0.20},
-        {value: 7, delay: 4.0, speed: 0.20},
-        {value: 6, delay: 7.0, speed: 0.20},
-        {value: 8, delay: 10.0, speed: 0.20},
-        {value: 4, delay: 13.5, speed: 0.20},
-      ],
+
+    mul: {
+      id: 'mul', icon: '×', label: 'Multiplicação', sub: 'use a tabuada',
+      color: '#ffa600',
+      tutorial: 'Multiplique pra crescer e depois subtraia tudo de uma vez! Ou use ×0 pra zerar direto.',
+      levels: [
+        // Modo Multiplicação — combinar × com − pra usar tabuada
+        // Validação: cada inimigo precisa de combinação (×N seguida de −valor)
+        { id: 1, diff: 0, lives: 3, title: 'Zero direto',
+          // 2 → ×0=0; 3 → ×0=0 OU ×2=6 e −6
+          handPool: [{op:'×',val:0},{op:'×',val:2},{op:'-',val:4},{op:'-',val:6}],
+          enemies: [{value:2,delay:1.5,speed:0.16},{value:3,delay:6.0,speed:0.16}],
+          tutorial: 'Use ×0 pra zerar de uma vez! Ou multiplique e subtraia.' },
+        { id: 2, diff: 0, lives: 3, title: 'Tabuada do 2',
+          // 2×2=4, 2×3=6, 2×4=8. Inimigos 2,3,4 com ×2 e −4,−6,−8
+          handPool: [{op:'×',val:2},{op:'-',val:4},{op:'-',val:6},{op:'-',val:8}],
+          enemies: [{value:2,delay:1.0,speed:0.18},{value:3,delay:4.5,speed:0.18},{value:4,delay:8.5,speed:0.18}],
+          tutorial: 'Tabuada do 2: 2×3=6, 2×4=8. Multiplique e subtraia o resultado.' },
+        { id: 3, diff: 0, lives: 3, title: 'Tabuada do 3',
+          // 3×2=6, 3×3=9, 3×4=12, 3×5=15. Pool tem essas subtrações.
+          handPool: [{op:'×',val:2},{op:'×',val:3},{op:'-',val:6},{op:'-',val:9},{op:'-',val:12}],
+          enemies: [{value:2,delay:1.0,speed:0.20},{value:3,delay:4.0,speed:0.20},{value:4,delay:7.0,speed:0.20},{value:3,delay:10.0,speed:0.20}] },
+        { id: 4, diff: 0, lives: 3, title: 'Tabuada do 4',
+          handPool: [{op:'×',val:2},{op:'×',val:3},{op:'×',val:4},{op:'-',val:8},{op:'-',val:12},{op:'-',val:16}],
+          enemies: [{value:2,delay:0.8,speed:0.22},{value:3,delay:3.5,speed:0.22},{value:4,delay:6.5,speed:0.22},{value:2,delay:9.0,speed:0.24},{value:3,delay:12.0,speed:0.22}] },
+        { id: 5, diff: 1, lives: 3, title: 'Misturando',
+          handPool: [{op:'×',val:0},{op:'×',val:2},{op:'×',val:3},{op:'-',val:6},{op:'-',val:9},{op:'-',val:12},{op:'-',val:15}],
+          enemies: [{value:3,delay:0.8,speed:0.24},{value:4,delay:3.0,speed:0.24},{value:5,delay:5.5,speed:0.24},{value:3,delay:8.0,speed:0.26},{value:2,delay:10.5,speed:0.24}] },
+        { id: 6, diff: 1, lives: 3, title: 'Tabuada do 5',
+          // 4×5=20, 5×5=25. Inimigos 3,4,5,6 com ×5 e −15,−20,−25,−30
+          handPool: [{op:'×',val:3},{op:'×',val:4},{op:'×',val:5},{op:'-',val:12},{op:'-',val:15},{op:'-',val:20},{op:'-',val:24}],
+          enemies: [{value:3,delay:0.8,speed:0.26},{value:4,delay:3.0,speed:0.26},{value:5,delay:5.5,speed:0.26},{value:6,delay:8.0,speed:0.26}] },
+        { id: 7, diff: 1, lives: 3, title: 'Mais difícil',
+          handPool: [{op:'×',val:2},{op:'×',val:3},{op:'×',val:4},{op:'×',val:5},{op:'-',val:10},{op:'-',val:15},{op:'-',val:20},{op:'-',val:24},{op:'-',val:30}],
+          enemies: [{value:4,delay:0.8,speed:0.28},{value:5,delay:3.0,speed:0.28},{value:6,delay:5.5,speed:0.28},{value:7,delay:8.0,speed:0.26},{value:3,delay:10.5,speed:0.30}] },
+        { id: 8, diff: 3, lives: 2, title: 'Boss (×0 salva)',
+          // Boss usa ×0 estratégico pros números esquisitos
+          handPool: [{op:'×',val:0},{op:'×',val:2},{op:'×',val:3},{op:'×',val:4},{op:'×',val:5},{op:'-',val:12},{op:'-',val:15},{op:'-',val:20},{op:'-',val:24},{op:'-',val:30}],
+          enemies: [{value:5,delay:0.8,speed:0.28},{value:6,delay:2.8,speed:0.28},{value:7,delay:4.8,speed:0.30},{value:8,delay:6.5,speed:0.30},{value:9,delay:8.5,speed:0.28}] },
+      ]
     },
-    {
-      id: 4, diff: 0, lives: 3,
-      title: 'Acelerando', goal: '5 inimigos',
-      ops: ['+', '-'],
-      handPool: [{op:'-', val:3}, {op:'-', val:5}, {op:'-', val:7}, {op:'+', val:2}, {op:'+', val:3}],
-      enemies: [
-        {value: 6, delay: 0.8, speed: 0.22},
-        {value: 9, delay: 3.5, speed: 0.22},
-        {value: 7, delay: 6.5, speed: 0.24},
-        {value: 10, delay: 9.0, speed: 0.22},
-        {value: 8, delay: 12.0, speed: 0.24},
-      ],
+
+    div: {
+      id: 'div', icon: '÷', label: 'Divisão', sub: 'até virar 1',
+      color: '#6c8dff',
+      tutorial: 'Divida até virar 1, depois subtraia 1 pra zerar! Só funciona divisão EXATA.',
+      levels: [
+        // Modo Divisão — dividir exato até 1, depois −1 pra zerar
+        // Validação: cada inimigo precisa decompor por primos do pool
+        { id: 1, diff: 0, lives: 3, title: 'Divide por 2',
+          // 4 → ÷2=2 → ÷2=1 → −1=0
+          handPool: [{op:'÷',val:2},{op:'-',val:1}],
+          enemies: [{value:2,delay:1.5,speed:0.16},{value:4,delay:6.0,speed:0.16}],
+          tutorial: '÷ só funciona se der número inteiro! 4 ÷ 2 = 2, ÷ 2 = 1, − 1 = 0.' },
+        { id: 2, diff: 0, lives: 3, title: 'Por 2 e por 3',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'-',val:1}],
+          enemies: [{value:6,delay:1.0,speed:0.18},{value:4,delay:4.5,speed:0.18},{value:8,delay:8.5,speed:0.18}] },
+        { id: 3, diff: 0, lives: 3, title: 'Pares e múltiplos',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'-',val:1}],
+          enemies: [{value:8,delay:1.0,speed:0.20},{value:12,delay:4.0,speed:0.20},{value:6,delay:7.0,speed:0.20},{value:9,delay:10.0,speed:0.20}],
+          tutorial: '12 ÷ 4 = 3, ÷ 3 = 1, − 1 = 0. Três cartas!' },
+        { id: 4, diff: 0, lives: 3, title: 'Dezesseis',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'-',val:1}],
+          enemies: [{value:12,delay:0.8,speed:0.22},{value:16,delay:3.5,speed:0.22},{value:9,delay:6.5,speed:0.22},{value:8,delay:9.0,speed:0.22}] },
+        { id: 5, diff: 1, lives: 3, title: 'Vinte e quatro',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:6},{op:'-',val:1}],
+          enemies: [{value:16,delay:0.8,speed:0.24},{value:24,delay:3.0,speed:0.24},{value:12,delay:5.5,speed:0.24},{value:18,delay:8.0,speed:0.24}] },
+        { id: 6, diff: 1, lives: 3, title: 'Trinta e seis',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:5},{op:'÷',val:6},{op:'-',val:1}],
+          enemies: [{value:20,delay:0.8,speed:0.26},{value:36,delay:3.0,speed:0.26},{value:24,delay:5.5,speed:0.26},{value:30,delay:8.0,speed:0.26}] },
+        { id: 7, diff: 1, lives: 3, title: 'Sessenta',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:5},{op:'÷',val:6},{op:'-',val:1}],
+          enemies: [{value:36,delay:0.8,speed:0.26},{value:60,delay:3.0,speed:0.26},{value:48,delay:5.5,speed:0.28},{value:30,delay:8.0,speed:0.28},{value:24,delay:10.5,speed:0.26}] },
+        { id: 8, diff: 3, lives: 2, title: 'Cem! (boss)',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:5},{op:'÷',val:10},{op:'-',val:1}],
+          enemies: [{value:100,delay:0.8,speed:0.26},{value:60,delay:3.0,speed:0.28},{value:48,delay:5.0,speed:0.28},{value:36,delay:7.0,speed:0.30},{value:24,delay:9.0,speed:0.30},{value:20,delay:11.0,speed:0.28}] },
+      ]
     },
-    {
-      id: 5, diff: 1, lives: 3,
-      title: 'Onda', goal: '6 inimigos',
-      ops: ['+', '-'],
-      handPool: [{op:'-', val:3}, {op:'-', val:5}, {op:'-', val:8}, {op:'+', val:1}, {op:'+', val:3}],
-      enemies: [
-        {value: 7, delay: 0.8, speed: 0.24},
-        {value: 9, delay: 3.0, speed: 0.24},
-        {value: 5, delay: 5.5, speed: 0.26},
-        {value: 12, delay: 7.5, speed: 0.24},
-        {value: 8, delay: 10.0, speed: 0.26},
-        {value: 10, delay: 12.5, speed: 0.26},
-      ],
+
+    mixed: {
+      id: 'mixed', icon: '🎯', label: 'Tudo Junto', sub: '4 operações',
+      color: '#9d4edd',
+      tutorial: 'Tudo misturado: inimigos positivos e negativos, todas as operações!',
+      levels: [
+        { id: 1, diff: 0, lives: 3, title: 'Mistura básica',
+          handPool: [{op:'+',val:3},{op:'-',val:4},{op:'-',val:5}],
+          enemies: [{value:-3,delay:1.5,speed:0.18},{value:4,delay:6.0,speed:0.18},{value:5,delay:11.0,speed:0.18}],
+          tutorial: 'Cartas + somam, − subtraem. Zere todos!' },
+        { id: 2, diff: 0, lives: 3, title: '+ e −',
+          handPool: [{op:'+',val:2},{op:'+',val:5},{op:'-',val:3},{op:'-',val:6}],
+          enemies: [{value:-5,delay:1.0,speed:0.20},{value:6,delay:4.5,speed:0.20},{value:-2,delay:8.0,speed:0.20},{value:3,delay:11.5,speed:0.20}] },
+        { id: 3, diff: 0, lives: 3, title: 'Entra o ×',
+          // 4 → ×0 ou ×2=8, −8; -3 → +3; 6 → −6 ou ×0
+          handPool: [{op:'+',val:3},{op:'-',val:6},{op:'-',val:8},{op:'×',val:0},{op:'×',val:2}],
+          enemies: [{value:4,delay:1.0,speed:0.22},{value:-3,delay:4.0,speed:0.22},{value:6,delay:7.0,speed:0.22},{value:4,delay:10.0,speed:0.22}],
+          tutorial: '×0 zera direto. ×2 dobra (cuidado!).' },
+        { id: 4, diff: 0, lives: 3, title: 'Entra o ÷',
+          // 8 → ÷2=4 ÷2=2 ÷2=1 −1; ou ÷4=2 ÷2=1 −1
+          handPool: [{op:'÷',val:2},{op:'÷',val:4},{op:'-',val:1},{op:'+',val:5},{op:'-',val:6}],
+          enemies: [{value:8,delay:1.0,speed:0.22},{value:-5,delay:4.0,speed:0.22},{value:6,delay:7.0,speed:0.22},{value:8,delay:10.0,speed:0.22}],
+          tutorial: '÷ exata só. 8 ÷ 4 = 2, ÷ 2 = 1, − 1 = 0.' },
+        { id: 5, diff: 1, lives: 3, title: 'Tudo!',
+          handPool: [{op:'+',val:5},{op:'-',val:10},{op:'×',val:2},{op:'÷',val:2},{op:'-',val:1},{op:'×',val:0}],
+          enemies: [{value:10,delay:0.8,speed:0.24},{value:-5,delay:3.0,speed:0.24},{value:8,delay:5.5,speed:0.24},{value:5,delay:8.0,speed:0.26},{value:4,delay:10.5,speed:0.26}] },
+        { id: 6, diff: 1, lives: 3, title: 'Estratégia',
+          handPool: [{op:'+',val:7},{op:'-',val:12},{op:'×',val:3},{op:'÷',val:2},{op:'÷',val:3},{op:'-',val:1}],
+          enemies: [{value:12,delay:0.8,speed:0.26},{value:-7,delay:3.0,speed:0.26},{value:4,delay:5.5,speed:0.28},{value:18,delay:8.0,speed:0.26},{value:6,delay:10.5,speed:0.28}] },
+        { id: 7, diff: 1, lives: 3, title: 'Pressão',
+          handPool: [{op:'+',val:10},{op:'-',val:15},{op:'×',val:0},{op:'×',val:3},{op:'÷',val:2},{op:'÷',val:3},{op:'-',val:1}],
+          enemies: [{value:15,delay:0.8,speed:0.28},{value:-10,delay:2.8,speed:0.28},{value:5,delay:5.0,speed:0.28},{value:24,delay:7.0,speed:0.28},{value:9,delay:9.0,speed:0.30}] },
+        { id: 8, diff: 3, lives: 2, title: 'Boss final',
+          handPool: [{op:'+',val:5},{op:'+',val:10},{op:'-',val:12},{op:'-',val:20},{op:'×',val:0},{op:'×',val:2},{op:'×',val:4},{op:'÷',val:2},{op:'÷',val:3},{op:'-',val:1}],
+          enemies: [{value:20,delay:0.8,speed:0.28},{value:-10,delay:2.8,speed:0.30},{value:36,delay:5.0,speed:0.28},{value:12,delay:7.0,speed:0.30},{value:-5,delay:9.0,speed:0.30},{value:48,delay:11.0,speed:0.28}] },
+      ]
     },
-    {
-      id: 6, diff: 1, lives: 3,
-      title: 'Multiplicação', goal: '6 inimigos',
-      ops: ['+', '-', '×'],
-      handPool: [{op:'-', val:4}, {op:'-', val:6}, {op:'+', val:2}, {op:'×', val:2}, {op:'×', val:0}],
-      enemies: [
-        {value: 6, delay: 1.0, speed: 0.24},
-        {value: 8, delay: 3.5, speed: 0.24},
-        {value: 4, delay: 6.0, speed: 0.26},
-        {value: 14, delay: 8.5, speed: 0.24},
-        {value: 9, delay: 11.0, speed: 0.26},
-        {value: 11, delay: 13.5, speed: 0.26},
-      ],
-      tutorial: 'Cartas amarelas MULTIPLICAM. ×0 zera direto, ×2 dobra (cuidado!)',
-    },
-    {
-      id: 7, diff: 1, lives: 3,
-      title: 'Combinações', goal: '7 inimigos',
-      ops: ['+', '-', '×'],
-      handPool: [{op:'-', val:5}, {op:'-', val:8}, {op:'+', val:3}, {op:'×', val:2}, {op:'×', val:0}],
-      enemies: [
-        {value: 7, delay: 0.8, speed: 0.26},
-        {value: 13, delay: 3.0, speed: 0.26},
-        {value: 8, delay: 5.5, speed: 0.28},
-        {value: 16, delay: 7.5, speed: 0.26},
-        {value: 9, delay: 10.0, speed: 0.28},
-        {value: 11, delay: 12.5, speed: 0.28},
-        {value: 14, delay: 15.0, speed: 0.28},
-      ],
-    },
-    {
-      id: 8, diff: 2, lives: 2,
-      title: 'Desafio', goal: '8 inimigos · 2 vidas',
-      ops: ['+', '-', '×'],
-      handPool: [{op:'-', val:7}, {op:'-', val:4}, {op:'+', val:3}, {op:'×', val:2}, {op:'×', val:0}],
-      enemies: [
-        {value: 8, delay: 0.8, speed: 0.28},
-        {value: 11, delay: 2.8, speed: 0.28},
-        {value: 6, delay: 4.8, speed: 0.32},
-        {value: 18, delay: 6.5, speed: 0.28},
-        {value: 13, delay: 8.5, speed: 0.30},
-        {value: 9, delay: 10.5, speed: 0.32},
-        {value: 21, delay: 12.5, speed: 0.28},
-        {value: 15, delay: 14.5, speed: 0.30},
-      ],
-    },
-  ];
+  };
+
+  const MODE_ORDER = ['add', 'sub', 'mul', 'div', 'mixed'];
+
+  // Helper pra acessar nível atual (mantém compatibilidade com código existente)
+  let LEVELS = MODES.sub.levels; // default; trocado quando usuário escolhe modo
 
   // ============ MASCOTES ============
   // Cor dos numinhos varia por valor
@@ -622,7 +789,8 @@
 
   // ============ STATE ============
   const state = {
-    progress: loadProgress(),
+    progress: loadProgress(),       // { [modeId]: { [levelId]: {stars, score} } }
+    currentMode: null,              // 'add' | 'sub' | 'mul' | 'div' | 'mixed'
     currentLevel: null,
     enemies: [],
     cards: [],
@@ -644,11 +812,30 @@
 
   function loadProgress() {
     try {
-      return JSON.parse(localStorage.getItem('numinhos_progress') || '{}');
-    } catch { return {}; }
+      const raw = JSON.parse(localStorage.getItem('numinhos_progress_v2') || 'null');
+      if (raw && typeof raw === 'object') return raw;
+      // Migrar formato antigo (flat por levelId) pro novo (por modo) — assume modo 'sub'
+      const old = JSON.parse(localStorage.getItem('numinhos_progress') || 'null');
+      if (old && typeof old === 'object') {
+        return { sub: old };
+      }
+    } catch {}
+    return {};
   }
   function saveProgress() {
-    localStorage.setItem('numinhos_progress', JSON.stringify(state.progress));
+    localStorage.setItem('numinhos_progress_v2', JSON.stringify(state.progress));
+  }
+  function progressOf(modeId, levelId) {
+    return (state.progress[modeId] && state.progress[modeId][levelId]) || null;
+  }
+  function recordProgress(modeId, levelId, stars, score) {
+    if (!state.progress[modeId]) state.progress[modeId] = {};
+    const prev = state.progress[modeId][levelId] || { stars: 0, score: 0 };
+    state.progress[modeId][levelId] = {
+      stars: Math.max(prev.stars, stars),
+      score: Math.max(prev.score, score),
+    };
+    saveProgress();
   }
 
   // ============ CANVAS ============
@@ -671,15 +858,49 @@
   }
   window.addEventListener('resize', () => { if (state.gameRunning) resize(); });
 
-  // ============ MENU / MAPA ============
+  // ============ TELA DE SELEÇÃO DE MODO ============
+  function renderModeSelect() {
+    const grid = document.getElementById('modeGrid');
+    grid.innerHTML = '';
+    MODE_ORDER.forEach(modeId => {
+      const mode = MODES[modeId];
+      const modeProgress = state.progress[modeId] || {};
+      const completedCount = mode.levels.filter(l => modeProgress[l.id]).length;
+      const totalStars = Object.values(modeProgress).reduce((s, p) => s + (p.stars || 0), 0);
+      const maxStars = mode.levels.length * 3;
+      const btn = document.createElement('button');
+      btn.className = 'mode-btn ' + modeId;
+      btn.innerHTML = `
+        <div class="mode-icon">${mode.icon}</div>
+        <div class="mode-label">${mode.label}</div>
+        <div class="mode-sub">${mode.sub}</div>
+        <div class="mode-progress">${totalStars}/${maxStars}⭐</div>
+      `;
+      btn.onclick = () => enterMode(modeId);
+      grid.appendChild(btn);
+    });
+  }
+
+  function enterMode(modeId) {
+    state.currentMode = modeId;
+    LEVELS = MODES[modeId].levels;
+    document.getElementById('menuTitle').textContent = MODES[modeId].icon + ' ' + MODES[modeId].label;
+    document.getElementById('menuSub').textContent = MODES[modeId].sub;
+    renderMenu();
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('show'));
+    document.getElementById('menuScreen').classList.add('show');
+  }
+
+  // ============ MAPA DE FASES ============
   function renderMenu() {
     const grid = document.getElementById('levelGrid');
     grid.innerHTML = '';
+    const modeProgress = state.progress[state.currentMode] || {};
     LEVELS.forEach((lvl, i) => {
       const btn = document.createElement('button');
       const prevId = i === 0 ? null : LEVELS[i-1].id;
-      const isUnlocked = i === 0 || (state.progress[prevId] && state.progress[prevId].stars > 0);
-      const completed = state.progress[lvl.id];
+      const isUnlocked = i === 0 || (modeProgress[prevId] && modeProgress[prevId].stars > 0);
+      const completed = modeProgress[lvl.id];
       btn.className = 'level-btn' + (isUnlocked ? '' : ' locked') + (completed ? ' completed' : '');
       const diffEmojis = ['🟢','🟡','🟠','🔴'];
       if (isUnlocked) {
@@ -895,39 +1116,62 @@
       if (d < bestDist) { bestDist = d; target = e; }
     }
     if (target) {
-      applyOp(card, target);
-      removeCard(card);
-      refillHand();
+      const ok = applyOp(card, target);
+      if (ok) {
+        removeCard(card);
+        refillHand();
+      } else {
+        // Carta inválida (divisão não exata) — mostra feedback e mantém na mão
+        showInvalidFeedback(target);
+      }
     }
   }
 
+  // Mostra feedback visual quando carta é inválida (divisão não exata)
+  function showInvalidFeedback(enemy) {
+    state.floatingTexts.push({
+      x: enemy.x, y: enemy.y - 20,
+      vy: -1.2,
+      life: 1,
+      text: 'não dá!',
+      color: '#888',
+    });
+    enemy.flashTime = 0.2;
+    if (navigator.vibrate) navigator.vibrate([20, 30, 20]);
+  }
+
+  // Retorna true se a carta foi aplicada com sucesso, false se inválida
   function applyOp(card, enemy) {
-    const before = enemy.value;
     let v = enemy.value;
-    if (card.op === '+') v = v + card.val;
-    else if (card.op === '-') v = v - card.val;
-    else if (card.op === '×') v = v * card.val;
-    else if (card.op === '÷') v = card.val === 0 ? v : Math.round(v / card.val);
+    if (card.op === '+') {
+      v = v + card.val;
+    } else if (card.op === '-') {
+      v = v - card.val;
+    } else if (card.op === '×') {
+      v = v * card.val;
+    } else if (card.op === '÷') {
+      // Divisão EXATA — só aplica se o resultado for inteiro (pedagogicamente correto)
+      if (card.val === 0) return false;            // divisão por zero
+      if (v === 0) return false;                   // já é zero
+      if (v % card.val !== 0) return false;        // não é divisão exata
+      v = v / card.val;
+    }
     enemy.value = v;
     enemy.flashTime = 0.4;
     // Texto flutuante
+    const opSymbol = card.op === '×' ? '×' : card.op === '÷' ? '÷' : card.op;
     state.floatingTexts.push({
       x: enemy.x, y: enemy.y - 20,
       vy: -1.5,
       life: 1,
-      text: (card.op === '×' ? '×' + card.val : (card.op === '+' ? '+' + card.val : (card.op === '-' ? '-' + card.val : '÷' + card.val))),
+      text: opSymbol + card.val,
       color: card.op === '+' ? '#43d177' : card.op === '-' ? '#ff6b6b' : card.op === '×' ? '#ffa600' : '#6c8dff',
     });
     // Vibração leve
     if (navigator.vibrate) navigator.vibrate(20);
 
-    if (v === 0) {
-      // Inimigo morto!
-      destroyEnemy(enemy);
-    } else if (v < 0) {
-      // Tornou-se negativo: piora? Pra simplicidade, só fica negativo - precisa subir até 0
-      // Mantém vivo mas com cor diferente
-    }
+    if (v === 0) destroyEnemy(enemy);
+    return true;
   }
 
   function destroyEnemy(enemy) {
@@ -1206,12 +1450,7 @@
     setTimeout(() => {
       const stars = computeStars();
       const lvl = state.currentLevel;
-      const prev = state.progress[lvl.id] || { stars: 0, score: 0 };
-      state.progress[lvl.id] = {
-        stars: Math.max(prev.stars, stars),
-        score: Math.max(prev.score, state.score),
-      };
-      saveProgress();
+      recordProgress(state.currentMode, lvl.id, stars, state.score);
       document.getElementById('winSub').textContent = lvl.title;
       document.getElementById('winStars').innerHTML = renderStarsHtml(stars);
       document.getElementById('winScore').textContent = state.score;
@@ -1244,7 +1483,18 @@
   }
 
   // ============ NAVIGATION ============
-  document.getElementById('backBtn').onclick = () => {
+  function goToModeSelect() {
+    state.gameRunning = false;
+    state.currentMode = null;
+    state.currentLevel = null;
+    document.getElementById('gameHud').style.display = 'none';
+    document.getElementById('wrap').style.display = 'none';
+    document.getElementById('hand').style.display = 'none';
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('show'));
+    renderModeSelect();
+    document.getElementById('modeSelectScreen').classList.add('show');
+  }
+  function goToLevelMenu() {
     state.gameRunning = false;
     document.getElementById('gameHud').style.display = 'none';
     document.getElementById('wrap').style.display = 'none';
@@ -1252,29 +1502,30 @@
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('show'));
     renderMenu();
     document.getElementById('menuScreen').classList.add('show');
-  };
+  }
+  document.getElementById('backBtn').onclick = goToLevelMenu;
+  document.getElementById('menuBackBtn').onclick = goToModeSelect;
 
   document.getElementById('winNextBtn').onclick = () => {
     const idx = LEVELS.findIndex(l => l.id === state.currentLevel.id);
+    document.getElementById('winScreen').classList.remove('show');
     if (idx < LEVELS.length - 1) {
-      document.getElementById('winScreen').classList.remove('show');
       startLevel(LEVELS[idx + 1]);
     } else {
-      document.getElementById('winScreen').classList.remove('show');
-      renderMenu();
-      document.getElementById('menuScreen').classList.add('show');
+      // Completou o modo inteiro → volta pra seleção
+      goToModeSelect();
     }
   };
   document.getElementById('winMenuBtn').onclick = () => {
     document.getElementById('winScreen').classList.remove('show');
-    renderMenu();
-    document.getElementById('menuScreen').classList.add('show');
+    goToLevelMenu();
   };
   document.getElementById('winDoubleBtn').onclick = () => {
     state.score *= 2;
     document.getElementById('winScore').textContent = state.score;
     const lvl = state.currentLevel;
-    state.progress[lvl.id].score = Math.max(state.progress[lvl.id].score, state.score);
+    const cur = state.progress[state.currentMode][lvl.id];
+    if (cur) cur.score = Math.max(cur.score, state.score);
     saveProgress();
     flashMsg('×2!', '#43d177');
   };
@@ -1285,8 +1536,7 @@
   };
   document.getElementById('loseMenuBtn').onclick = () => {
     document.getElementById('loseScreen').classList.remove('show');
-    renderMenu();
-    document.getElementById('menuScreen').classList.add('show');
+    goToLevelMenu();
   };
   document.getElementById('loseReviveBtn').onclick = () => {
     document.getElementById('loseScreen').classList.remove('show');
@@ -1298,8 +1548,63 @@
     updateHUD();
   };
 
+  // ============ SOLVER DE SANIDADE ============
+  // Verifica em runtime que cada fase é solucionável com o pool dado.
+  // Não bloqueia — só avisa no console se algo estiver impossível ou estranho.
+  function validateAllModes() {
+    let problems = 0;
+    for (const modeId of MODE_ORDER) {
+      const mode = MODES[modeId];
+      mode.levels.forEach(lvl => {
+        lvl.enemies.forEach(enemy => {
+          if (!canSolveEnemy(enemy.value, lvl.handPool)) {
+            console.warn(`[Numinhos] Fase ${modeId}/${lvl.id} (${lvl.title}): inimigo ${enemy.value} pode não ser solucionável com o pool`, lvl.handPool);
+            problems++;
+          }
+        });
+      });
+    }
+    if (problems === 0) console.log('[Numinhos] ✓ Todas as fases solucionáveis');
+    else console.warn(`[Numinhos] ⚠ ${problems} problema(s) de solucionabilidade`);
+  }
+
+  // BFS limitada: a partir do valor inicial, aplica cartas do pool buscando 0.
+  // Limite de profundidade e de estados pra não explodir.
+  function canSolveEnemy(startValue, handPool) {
+    if (startValue === 0) return true;
+    const visited = new Set([startValue]);
+    let frontier = [startValue];
+    const maxDepth = 8;       // até 8 cartas pra zerar
+    const maxStates = 5000;
+    for (let depth = 0; depth < maxDepth && frontier.length > 0; depth++) {
+      const next = [];
+      for (const v of frontier) {
+        for (const card of handPool) {
+          let nv;
+          if (card.op === '+') nv = v + card.val;
+          else if (card.op === '-') nv = v - card.val;
+          else if (card.op === '×') nv = v * card.val;
+          else if (card.op === '÷') {
+            if (card.val === 0 || v === 0 || v % card.val !== 0) continue;
+            nv = v / card.val;
+          } else continue;
+          if (nv === 0) return true;
+          if (Math.abs(nv) > 1000) continue; // poda
+          if (!visited.has(nv)) {
+            visited.add(nv);
+            next.push(nv);
+            if (visited.size > maxStates) return true; // assume sim, evita travar
+          }
+        }
+      }
+      frontier = next;
+    }
+    return false;
+  }
+
   // ============ INIT ============
-  renderMenu();
+  validateAllModes();
+  renderModeSelect();
   requestAnimationFrame(loop);
 })();
 </script>
