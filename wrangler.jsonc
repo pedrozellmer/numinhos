@@ -10,5 +10,9 @@
   },
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "routes": [
+    { "pattern": "numinhos.app", "custom_domain": true },
+    { "pattern": "www.numinhos.app", "custom_domain": true }
   ]
 }
