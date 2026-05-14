@@ -110,6 +110,8 @@ const mixedSvg = `
 </svg>
 `.trim();
 
+// winPhrases — frases de celebração que aparecem na tela de vitória.
+// Sorteia uma por vez. Mantém variedade entre tentativas, voz brasileira.
 export const MENTORS = {
   capi: {
     id: 'capi', name: 'Capi', species: 'Capivara',
@@ -117,6 +119,12 @@ export const MENTORS = {
     operation: '+', operationLabel: 'Soma',
     color: '#a67c52',
     catchphrase: 'Quanto mais a gente junta, maior a família fica!',
+    winPhrases: [
+      'Boa! Você juntou tudo direitinho!',
+      'Mandou bem na soma!',
+      'Olha que família grande!',
+      'Somando assim a gente chega lá!',
+    ],
     svg: capiSvg,
   },
   tuca: {
@@ -125,6 +133,12 @@ export const MENTORS = {
     operation: '−', operationLabel: 'Subtração',
     color: '#ff8e3c',
     catchphrase: 'Tira essa daqui pra eu ver o outro lado!',
+    winPhrases: [
+      'Boa! Tirou na hora certa!',
+      'Subtraiu como ninguém!',
+      'Voa alto, criança!',
+      'Que velocidade, hein!',
+    ],
     svg: tucaSvg,
   },
   boto: {
@@ -133,6 +147,12 @@ export const MENTORS = {
     operation: '×', operationLabel: 'Multiplicação',
     color: '#ff9eb5',
     catchphrase: 'Olha o truque: era 3, virou 12!',
+    winPhrases: [
+      'Que mágica! Multiplicou tudo!',
+      'Tabuada na ponta da língua!',
+      'Boa! O truque deu certo!',
+      'Olha esse cálculo aí, ó!',
+    ],
     svg: botoSvg,
   },
   mira: {
@@ -141,6 +161,12 @@ export const MENTORS = {
     operation: '÷', operationLabel: 'Divisão',
     color: '#f5c14b',
     catchphrase: 'Pra dividir certo, primeiro a gente respira.',
+    winPhrases: [
+      'Dividiu com paciência! Boa!',
+      'Calma e precisão, do jeito certo!',
+      'Mandou bem, foco total!',
+      'Repartiu tudo certinho!',
+    ],
     svg: miraSvg,
   },
   mixed: {
@@ -149,6 +175,12 @@ export const MENTORS = {
     operation: '🎯', operationLabel: 'Tudo Junto',
     color: '#9d4edd',
     catchphrase: 'Todos juntos, qualquer desafio.',
+    winPhrases: [
+      'Usou todas as operações! Demais!',
+      'Os quatro mentores tão orgulhosos!',
+      'Mandou bem em tudo!',
+      'Versatilidade total!',
+    ],
     svg: mixedSvg,
   },
 };

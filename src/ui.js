@@ -290,14 +290,35 @@ export function winLevel() {
   setTimeout(() => {
     const stars = computeStars();
     const lvl = state.currentLevel;
+    const mode = MODES[state.currentMode];
     recordProgress(state.currentMode, lvl.id, stars, state.score);
+
+    // Mentor da operação atual celebra
+    document.getElementById('winMentor').innerHTML = mode.mentor.svg;
+
+    // Frase aleatória do mentor
+    const phrases = mode.mentor.winPhrases || ['Mandou bem!'];
+    const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+    document.getElementById('winPhrase').textContent = phrase;
+
     document.getElementById('winSub').textContent = lvl.title;
-    document.getElementById('winStars').innerHTML = renderStarsHtml(stars);
+
+    // Estrelas com animação pop sequencial
+    document.getElementById('winStars').innerHTML = renderAnimatedStars(stars);
+
     document.getElementById('winScore').textContent = state.score;
     document.getElementById('winLives').textContent = state.lives;
     hideGame();
     document.getElementById('winScreen').classList.add('show');
   }, 1200);
+}
+
+// Estrelas com classes pra animação sequencial (s1, s2, s3)
+function renderAnimatedStars(n) {
+  return [1,2,3].map(i => {
+    if (i <= n) return `<span class="star s${i}">⭐</span>`;
+    return `<span class="star empty">⭐</span>`;
+  }).join('');
 }
 
 // Critério de estrelas — simples e justo:
