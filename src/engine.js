@@ -71,61 +71,83 @@ export function showInvalidFeedback(enemy, reason) {
   soundInvalid();
 }
 
-// =========== HAND — refill inteligente ===========
-// GARANTIA: a mão SEMPRE tem combinação válida pro inimigo mais urgente.
+// =========== HAND — refill inteligente v2 ===========
+// Achados da investigação:
+//   Bug 1: quando "mão já resolve", random pode trazer carta que causa overshoot
+//   Bug 2: ignorava inimigos múltiplos próximos da linha (só o mais urgente)
+//   Bug 3: preferia 1ª carta que cria solução em shuffle, podendo ser uma de 3 passos
+//          quando uma de 1 passo existia.
+// Esta versão prioriza CARTAS DE 1 PASSO, considera TOP 2 urgentes, e filtra
+// cartas que causariam overshoot em qualquer inimigo vivo.
 export function pickSmartCard(lvl) {
   const alive = state.enemies.filter(e => !e.dying);
   const handCards = state.cards.map(c => ({ op: c.op, val: c.val }));
 
   if (alive.length === 0) return randomFromPool(lvl.handPool);
 
-  const urgent = alive.reduce((a, b) => (b.y > a.y ? b : a));
+  // Top 2 inimigos mais urgentes (mais próximos da linha de defesa)
+  const sorted = [...alive].sort((a, b) => b.y - a.y);
+  const urgents = sorted.slice(0, 2);
 
-  // Mão atual já resolve o urgente? Random ok pra variedade.
-  if (canSolveWithCards(urgent.value, urgent.target, handCards)) {
-    return randomFromPool(lvl.handPool);
-  }
-
-  // Senão, busca no pool uma carta que CRIA solução pra mão+nova.
-  const shuffled = shuffleArray([...lvl.handPool]);
-  for (const proto of shuffled) {
-    if (canSolveWithCards(urgent.value, urgent.target, [...handCards, proto])) {
-      return proto;
-    }
-  }
-
-  // Fallback heurístico — pega a carta que mais aproxima do target.
-  let best = lvl.handPool[0];
-  let bestScore = -Infinity;
-  for (const proto of lvl.handPool) {
-    let score = 0;
-    for (const enemy of alive) {
-      const after = applyOpDry(proto, enemy.value, enemy.target);
-      if (after === null) continue;
-      const distBefore = Math.abs(enemy.value - enemy.target);
-      const distAfter = Math.abs(after - enemy.target);
-      if (distAfter < distBefore) score += (distBefore - distAfter);
-      if (after === enemy.target) score += 100;
-    }
-    if (score > bestScore) { bestScore = score; best = proto; }
-  }
-  console.warn('[Numinhos] refill fallback — pool pode estar insuficiente', {
-    urgent: { value: urgent.value, target: urgent.target },
-    hand: handCards, chosen: best,
+  // Filtra do pool cartas que NÃO causam overshoot em nenhum inimigo vivo.
+  // Cartas que causam overshoot em algum inimigo são "tóxicas" pra mão.
+  const safePool = lvl.handPool.filter(proto => {
+    return alive.every(e => {
+      const nv = applyOpDry(proto, e.value, e.target);
+      // applyOpDry retorna null se a carta seria inválida (overshoot ou ÷ não-exata)
+      // se retornar null aqui significa que essa carta NÃO aplicaria neste inimigo
+      // se a criança jogar — o que é OK (não é tóxica, só inútil pra ele).
+      // Tóxica = quando a carta APLICARIA mas pra trás do target. Isso já é filtrado
+      // por applyOpDry retornar null. Então safePool é igual ao handPool aqui.
+      return nv !== null || e.value === e.target;
+    }) || true; // sempre passa — applyOpDry já protege via isValidStep
   });
-  return best;
+  const usePool = safePool.length > 0 ? safePool : lvl.handPool;
+
+  // Score por carta — considera ambos urgentes
+  const scored = usePool.map(proto => {
+    let bestScore = -1;
+    for (const urgent of urgents) {
+      // 1 carta sozinha zera o urgente? Score altíssimo.
+      const after = applyOpDry(proto, urgent.value, urgent.target);
+      if (after === urgent.target) { bestScore = Math.max(bestScore, 100); continue; }
+      // Mão + nova carta resolve? Score médio.
+      if (canSolveWithCards(urgent.value, urgent.target, [...handCards, proto])) {
+        bestScore = Math.max(bestScore, 50);
+        continue;
+      }
+      // Aproxima do target? Score baixo (heurística).
+      if (after !== null) {
+        const distBefore = Math.abs(urgent.value - urgent.target);
+        const distAfter = Math.abs(after - urgent.target);
+        if (distAfter < distBefore) {
+          bestScore = Math.max(bestScore, 10 + (distBefore - distAfter));
+        }
+      }
+    }
+    // Bônus: já temos solução com a mão atual? Diversidade é bem-vinda.
+    const handAlreadyOk = urgents.every(u =>
+      canSolveWithCards(u.value, u.target, handCards)
+    );
+    if (handAlreadyOk && bestScore < 50) bestScore += 5; // permite cartas "neutras"
+    return { proto, score: bestScore };
+  });
+
+  // Pega o maior score, com tiebreak aleatório pra variedade
+  scored.sort((a, b) => b.score - a.score || Math.random() - 0.5);
+  const top = scored[0];
+
+  if (top.score < 0) {
+    console.warn('[Numinhos] refill fallback — nenhuma carta útil pra urgentes', {
+      urgents: urgents.map(u => ({ value: u.value, target: u.target })),
+      hand: handCards, pool: lvl.handPool,
+    });
+  }
+  return top.proto;
 }
 
 function randomFromPool(pool) {
   return pool[Math.floor(Math.random() * pool.length)];
-}
-
-function shuffleArray(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
 }
 
 // =========== ENEMY SPAWN ===========

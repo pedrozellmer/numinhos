@@ -464,14 +464,28 @@ canvas {
 /* ============ TUTORIAL ============ */
 .tutorial {
   position: fixed;
-  background: white; padding: 12px 18px; border-radius: 16px;
-  font-size: 13px; font-weight: 600;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-  z-index: 50; max-width: 240px;
-  text-align: center; pointer-events: none;
-  animation: tutPop 0.3s;
+  background: white; padding: 16px 18px 12px; border-radius: 16px;
+  font-size: 14px; font-weight: 600; color: #2d1f3d;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18), 0 0 0 4px rgba(255,209,102,0.4);
+  z-index: 50; max-width: 280px;
+  text-align: center;
+  animation: tutPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+.tutorial > div { margin-bottom: 10px; line-height: 1.4; }
+.tutorial-ok {
+  background: linear-gradient(180deg, #ffd166, #ffa600);
+  border: none;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.12);
+}
+.tutorial-ok:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.12); }
 @keyframes tutPop {
-  0% { transform: scale(0.7); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  0% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }

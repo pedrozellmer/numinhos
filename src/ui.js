@@ -142,17 +142,38 @@ export function updateHUD() {
   document.getElementById('scoreLabel').textContent = state.score;
 }
 
+// Tutorial não some automaticamente — só com clique no "Entendi".
+// Decisão pós-feedback da usuária: criança não conseguia ler antes do tutorial sumir.
+let activeTutorial = null;
 function showTutorial(text) {
+  dismissTutorial();
   const el = document.createElement('div');
   el.className = 'tutorial';
-  el.textContent = text;
-  el.style.top = '40%'; el.style.left = '50%';
+  el.innerHTML = `
+    <div>${text}</div>
+    <button class="tutorial-ok">Entendi 👍</button>
+  `;
+  el.style.top = '38%'; el.style.left = '50%';
   el.style.transform = 'translate(-50%, -50%)';
   document.body.appendChild(el);
-  setTimeout(() => {
-    el.style.transition = 'opacity 0.4s'; el.style.opacity = '0';
-    setTimeout(() => el.remove(), 400);
-  }, 3500);
+  activeTutorial = el;
+  el.querySelector('.tutorial-ok').addEventListener('click', dismissTutorial);
+}
+
+function dismissTutorial() {
+  if (!activeTutorial) return;
+  const el = activeTutorial;
+  activeTutorial = null;
+  el.style.transition = 'opacity 0.3s, transform 0.3s';
+  el.style.opacity = '0';
+  el.style.transform = 'translate(-50%, -50%) scale(0.8)';
+  setTimeout(() => el.remove(), 300);
+}
+
+// Fecha tutorial automaticamente quando jogador interage com a primeira carta.
+// Chamado pelo bindCardDrag onStart.
+export function notifyTutorialOfAction() {
+  dismissTutorial();
 }
 
 // =========== HAND ===========
@@ -201,6 +222,7 @@ function bindCardDrag(el, card) {
   const onStart = (clientX, clientY) => {
     if (!state.gameRunning) return;
     active = true;
+    notifyTutorialOfAction();   // fecha tutorial na primeira ação
     el.classList.add('dragging');
     const preview = document.getElementById('dragPreview');
     preview.innerHTML = el.innerHTML;
