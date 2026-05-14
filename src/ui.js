@@ -300,11 +300,15 @@ export function winLevel() {
   }, 1200);
 }
 
+// Critério de estrelas — simples e justo:
+//   3⭐ = não perdeu nenhuma vida (perfeito)
+//   2⭐ = perdeu 1 vida (boa)
+//   1⭐ = perdeu 2+ vidas (ok, ainda passou)
 function computeStars() {
   const lvl = state.currentLevel;
-  const pct = state.lives / lvl.lives;
-  if (pct >= 1) return 3;
-  if (pct >= 0.5) return 2;
+  const livesLost = lvl.lives - state.lives;
+  if (livesLost === 0) return 3;
+  if (livesLost === 1) return 2;
   return 1;
 }
 
