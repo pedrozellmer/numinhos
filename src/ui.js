@@ -181,8 +181,13 @@ export function refillHand(initial = false) {
   const lvl = state.currentLevel;
   const handDiv = document.getElementById('hand');
   if (initial) handDiv.innerHTML = '';
-  while (state.cards.length < state.cardSlots) {
+  let safety = 50; // guard contra loop infinito caso pickSmartCard regrida
+  while (state.cards.length < state.cardSlots && safety-- > 0) {
     const proto = pickSmartCard(lvl);
+    if (!proto || proto.op == null || proto.val == null) {
+      console.error('[Numinhos] pickSmartCard retornou inválido', proto);
+      break;
+    }
     const card = { id: state.nextCardId++, op: proto.op, val: proto.val };
     state.cards.push(card);
     addCardToDOM(card);

@@ -52,14 +52,16 @@ function loop(now) {
     updateParticles(dt);
     if (state.shake > 0) state.shake = Math.max(0, state.shake - dt * 30);
 
+    // Fim de fase: todos os spawns aconteceram E arena está vazia.
+    // VITÓRIA se ainda tem ao menos 1 vida (3 vidas = pode errar até 2 vezes).
+    // Cada vida perdida já é penalizada nas estrelas (3⭐=perfeito, 2⭐=−1 vida, 1⭐=−2+).
     if (
       state.gameRunning &&
       state.enemiesSpawned >= state.currentLevel.enemies.length &&
       state.enemies.length === 0
     ) {
-      const total = state.currentLevel.enemies.length;
-      if (state.enemiesKilled >= total) winLevel();
-      else loseLevel();
+      if (state.lives > 0) winLevel();
+      // (se lives <= 0, loseLevel() já foi disparado na detecção do escape)
     }
   }
 

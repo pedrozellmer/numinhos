@@ -89,23 +89,11 @@ export function pickSmartCard(lvl) {
   const sorted = [...alive].sort((a, b) => b.y - a.y);
   const urgents = sorted.slice(0, 2);
 
-  // Filtra do pool cartas que NÃO causam overshoot em nenhum inimigo vivo.
-  // Cartas que causam overshoot em algum inimigo são "tóxicas" pra mão.
-  const safePool = lvl.handPool.filter(proto => {
-    return alive.every(e => {
-      const nv = applyOpDry(proto, e.value, e.target);
-      // applyOpDry retorna null se a carta seria inválida (overshoot ou ÷ não-exata)
-      // se retornar null aqui significa que essa carta NÃO aplicaria neste inimigo
-      // se a criança jogar — o que é OK (não é tóxica, só inútil pra ele).
-      // Tóxica = quando a carta APLICARIA mas pra trás do target. Isso já é filtrado
-      // por applyOpDry retornar null. Então safePool é igual ao handPool aqui.
-      return nv !== null || e.value === e.target;
-    }) || true; // sempre passa — applyOpDry já protege via isValidStep
-  });
-  const usePool = safePool.length > 0 ? safePool : lvl.handPool;
-
-  // Score por carta — considera ambos urgentes
-  const scored = usePool.map(proto => {
+  // Score por carta — considera ambos urgentes.
+  // applyOpDry já bloqueia cartas que passariam do target (isValidStep), então
+  // não precisamos filtrar "cartas tóxicas" aqui — o jogador também é protegido
+  // em tempo de jogo: a carta inválida não consome e mostra 'passa do alvo!'.
+  const scored = lvl.handPool.map(proto => {
     let bestScore = -1;
     for (const urgent of urgents) {
       // 1 carta sozinha zera o urgente? Score altíssimo.
