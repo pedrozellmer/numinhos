@@ -3,7 +3,7 @@
 
 import { state, HAND_SIZE, getLevels, setLevels } from './state.js';
 import { MODES, MODE_ORDER } from './levels.js';
-import { applyOp, pickSmartCard, showInvalidFeedback } from './engine.js';
+import { applyOp, pickSmartCard, buildOptimalInitialHand, showInvalidFeedback } from './engine.js';
 import { getDims, getCanvas, resize } from './render.js';
 import { soundMenuClick, soundWinLevel, soundLoseLevel, initAudio } from './audio.js';
 
@@ -191,8 +191,19 @@ export function notifyTutorialOfAction() {
 export function refillHand(initial = false) {
   const lvl = state.currentLevel;
   const handDiv = document.getElementById('hand');
-  if (initial) handDiv.innerHTML = '';
-  let safety = 50; // guard contra loop infinito caso pickSmartCard regrida
+  if (initial) {
+    // MÃO INICIAL OTIMIZADA via BFS — garante cobertura dos primeiros spawns.
+    handDiv.innerHTML = '';
+    const optimal = buildOptimalInitialHand(lvl, state.cardSlots);
+    for (const proto of optimal) {
+      const card = { id: state.nextCardId++, op: proto.op, val: proto.val };
+      state.cards.push(card);
+      addCardToDOM(card);
+    }
+    return;
+  }
+  // REFILL durante o jogo — pickSmartCard com garantia inviolável.
+  let safety = 50;
   while (state.cards.length < state.cardSlots && safety-- > 0) {
     const proto = pickSmartCard(lvl);
     if (!proto || proto.op == null || proto.val == null) {

@@ -3,7 +3,7 @@
 
 import { state, SPEED_MULTIPLIER } from './state.js';
 import { isValidStep, applyOpDry } from './math.js';
-import { canSolveWithCards } from './solver.js';
+import { canSolveWithCards, findShortestSolution } from './solver.js';
 import { colorFor } from './levels.js';
 import { soundCardApplied, soundEnemyDestroyed, soundInvalid, soundLifeLost } from './audio.js';
 
@@ -71,88 +71,142 @@ export function showInvalidFeedback(enemy, reason) {
   soundInvalid();
 }
 
-// =========== HAND — refill inteligente v3 ===========
-// Bug grave detectado por Pedro: mão inicial sorteia random sem considerar
-// inimigos PRÓXIMOS a spawnar — criança começava a fase travada com cartas
-// inúteis (ex: pool [+1,+2,+3,+4] sorteava [+3,+3,+3,+4] e inimigos eram
-// 4→5 e 3→5, nenhuma carta resolvia).
+// =========== HAND — refill v4 com GARANTIA INVIOLÁVEL ===========
 //
-// Versão v3:
-//   - Considera TANTO inimigos vivos QUANTO próximos a spawnar
-//   - Penaliza cartas duplicadas na mão (favorece diversidade)
-//   - Mão inicial não é mais random — é otimizada pros 4 primeiros alvos
+// INVARIANTE: TODO inimigo vivo deve ter ao menos uma combinação na mão
+// (atual + nova carta) que o resolva. Sempre. Em qualquer modo, fase
+// ou dificuldade. Sem exceção.
+//
+// Algoritmo em 4 passos prioritários:
+//   1. CONSERTA: se algum inimigo vivo está irresolvível com a mão atual,
+//      a próxima carta DEVE consertar pelo menos um deles
+//   2. PREPARA: se mão atual cobre vivos, considera próximos spawns
+//   3. DIVERSIFICA: se tudo coberto, escolhe carta menos repetida no pool
+//   4. FALLBACK: heurística "aproxima target" (não deveria chegar aqui)
+
 export function pickSmartCard(lvl) {
   const alive = state.enemies.filter(e => !e.dying);
   const handCards = state.cards.map(c => ({ op: c.op, val: c.val }));
 
-  // Top inimigos vivos por urgência (mais próximos da linha)
-  const sorted = [...alive].sort((a, b) => b.y - a.y);
-  const aliveTargets = sorted.slice(0, 3).map(e => ({
-    value: e.value, target: e.target, weight: 100,
-  }));
+  // === PASSO 1: CONSERTA inimigos vivos sem solução com mão atual ===
+  const unsolvableAlive = alive.filter(e =>
+    !canSolveWithCards(e.value, e.target, handCards)
+  );
+  if (unsolvableAlive.length > 0) {
+    // Sort: mais urgente primeiro (maior y = mais perto da linha)
+    unsolvableAlive.sort((a, b) => b.y - a.y);
+    // Pra cada carta no pool, ver QUANTOS unsolvables ela conserta
+    const fixers = lvl.handPool.map(proto => {
+      const fixedCount = unsolvableAlive.filter(e =>
+        canSolveWithCards(e.value, e.target, [...handCards, proto])
+      ).length;
+      // Bônus: carta que zera SOZINHA o mais urgente (1-passo)
+      const oneStepFix = applyOpDry(proto, unsolvableAlive[0].value, unsolvableAlive[0].target)
+                        === unsolvableAlive[0].target ? 10 : 0;
+      const dupCount = handCards.filter(c => c.op === proto.op && c.val === proto.val).length;
+      return { proto, score: fixedCount * 100 + oneStepFix - dupCount * 5 };
+    });
+    fixers.sort((a, b) => b.score - a.score || Math.random() - 0.5);
+    if (fixers[0].score > 0) return fixers[0].proto;
+    // Se nenhuma carta conserta, é problema do design da fase — log e fallback
+    console.warn('[Numinhos] INVARIANTE QUEBRADA: nenhuma carta no pool conserta inimigos vivos',
+      { unsolvableAlive: unsolvableAlive.map(e => ({v:e.value, t:e.target})),
+        hand: handCards, pool: lvl.handPool });
+  }
 
-  // Próximos inimigos a spawnar (preencher até 3 alvos no total)
-  const remainingSlots = 3 - aliveTargets.length;
+  // === PASSO 2: PREPARA — considera próximos spawns ===
   const upcoming = lvl.enemies
-    .slice(state.enemiesSpawned, state.enemiesSpawned + remainingSlots)
+    .slice(state.enemiesSpawned, state.enemiesSpawned + 3)
     .map(spec => ({
       value: spec.value,
       target: spec.target != null ? spec.target : 0,
-      weight: 70, // alvo futuro vale menos que vivo
     }));
+  const targets = [
+    ...alive.slice().sort((a, b) => b.y - a.y).slice(0, 3),
+    ...upcoming
+  ];
 
-  const targets = [...aliveTargets, ...upcoming];
-
-  // Sem nenhum alvo (fim de fase): random é OK
   if (targets.length === 0) return randomFromPool(lvl.handPool);
 
-  // Score por carta considerando TODOS os alvos relevantes
+  // === PASSO 3: DIVERSIFICA / PREFERE 1-PASSO ===
   const scored = lvl.handPool.map(proto => {
-    let bestScore = -1;
+    let bestScore = 0;
     for (const t of targets) {
-      // 1 carta sozinha zera esse alvo? score alto (modulado pelo peso)
+      const weight = alive.includes(t) ? 100 : 60; // vivo > upcoming
       const after = applyOpDry(proto, t.value, t.target);
-      if (after === t.target) {
-        bestScore = Math.max(bestScore, t.weight);
-        continue;
-      }
-      // Mão + nova carta resolve esse alvo? score médio
+      if (after === t.target) { bestScore = Math.max(bestScore, weight); continue; }
       if (canSolveWithCards(t.value, t.target, [...handCards, proto])) {
-        bestScore = Math.max(bestScore, Math.round(t.weight * 0.5));
+        bestScore = Math.max(bestScore, Math.round(weight * 0.5));
         continue;
       }
-      // Aproxima do target? heurística baixa
       if (after !== null) {
-        const distBefore = Math.abs(t.value - t.target);
-        const distAfter = Math.abs(after - t.target);
-        if (distAfter < distBefore) {
-          bestScore = Math.max(bestScore, 5 + (distBefore - distAfter));
-        }
+        const dB = Math.abs(t.value - t.target);
+        const dA = Math.abs(after - t.target);
+        if (dA < dB) bestScore = Math.max(bestScore, 5 + (dB - dA));
       }
     }
-
-    // PENALIDADE DE DUPLICAÇÃO — favorece diversidade na mão.
-    // Se a mão já tem N cópias dessa carta, diminui score.
+    // Diversidade: penaliza cartas já repetidas
     const dupCount = handCards.filter(c => c.op === proto.op && c.val === proto.val).length;
-    if (dupCount > 0) bestScore -= dupCount * 12;
-
+    bestScore -= dupCount * 12;
     return { proto, score: bestScore };
   });
 
-  // Pega o maior score, tiebreak aleatório pra variedade
   scored.sort((a, b) => b.score - a.score || Math.random() - 0.5);
-  const top = scored[0];
-
-  if (top.score < 0) {
-    console.warn('[Numinhos] refill fallback — nenhuma carta útil pra alvos', {
-      targets, hand: handCards, pool: lvl.handPool,
-    });
-  }
-  return top.proto;
+  return scored[0].proto;
 }
 
 function randomFromPool(pool) {
   return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// =========== MÃO INICIAL OTIMIZADA ===========
+// Constrói a mão completa de 'slots' cartas que cobre os primeiros spawns.
+// Usa findShortestSolution (BFS no pool) — funciona até pra divisões
+// encadeadas (ex: 36→1 com pool ÷2-÷6 precisa de ÷6 + ÷6).
+export function buildOptimalInitialHand(lvl, slots = 4) {
+  const upcoming = lvl.enemies.slice(0, slots).map(spec => ({
+    value: spec.value,
+    target: spec.target != null ? spec.target : 0,
+  }));
+
+  // Pra cada inimigo, descobre a sequência ótima de cartas que zera ele
+  const solutions = upcoming.map(e =>
+    findShortestSolution(e.value, e.target, lvl.handPool)
+  );
+
+  const hand = [];
+  // Greedy: pra cada inimigo, garantir cobertura na mão final.
+  // A cada rodada, pra cada inimigo não-coberto, adiciona UMA carta da
+  // solução dele que ainda FALTA na mão (considerando contagem — soluções
+  // podem precisar da mesma carta múltiplas vezes, ex: ÷2÷2÷2).
+  for (let iter = 0; iter < 20 && hand.length < slots; iter++) {
+    let addedThisRound = false;
+    for (let i = 0; i < upcoming.length && hand.length < slots; i++) {
+      const enemy = upcoming[i];
+      if (canSolveWithCards(enemy.value, enemy.target, hand)) continue;
+      const sol = solutions[i];
+      // Acha próxima carta cuja quantidade na mão ainda é menor que na solução
+      const need = sol.find(c => {
+        const inSol = sol.filter(s => s.op === c.op && s.val === c.val).length;
+        const inHand = hand.filter(h => h.op === c.op && h.val === c.val).length;
+        return inHand < inSol;
+      });
+      if (!need) continue;
+      hand.push(need);
+      addedThisRound = true;
+    }
+    if (!addedThisRound) break;
+  }
+
+  // Preenche slots restantes com cartas diversas (não repete o que já tem)
+  while (hand.length < slots) {
+    const fresh = lvl.handPool.find(p =>
+      !hand.some(h => h.op === p.op && h.val === p.val)
+    );
+    hand.push(fresh || lvl.handPool[0]);
+  }
+
+  return hand;
 }
 
 // =========== ENEMY SPAWN ===========

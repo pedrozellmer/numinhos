@@ -52,6 +52,37 @@ export function canSolveWithCards(startValue, target, cards) {
 }
 
 /**
+ * BFS com tracking de caminho — retorna a SEQUÊNCIA MÍNIMA de cartas
+ * (com reuso) que leva de startValue até target. [] se não encontrar.
+ * Usado para construir mão inicial otimizada.
+ */
+export function findShortestSolution(startValue, target, handPool, maxDepth = 6) {
+  if (startValue === target) return [];
+  const visited = new Map();
+  visited.set(startValue, []);
+  let frontier = [startValue];
+  for (let depth = 0; depth < maxDepth && frontier.length > 0; depth++) {
+    const next = [];
+    for (const v of frontier) {
+      const path = visited.get(v);
+      for (const card of handPool) {
+        const nv = applyOpDry(card, v, target);
+        if (nv === null) continue;
+        const newPath = [...path, card];
+        if (nv === target) return newPath;
+        if (Math.abs(nv) > 10000) continue;
+        if (!visited.has(nv)) {
+          visited.set(nv, newPath);
+          next.push(nv);
+        }
+      }
+    }
+    frontier = next;
+  }
+  return [];
+}
+
+/**
  * Valida que todas as fases de todos os modos têm pelo menos um caminho
  * matemático até o target de cada inimigo. Roda no boot e loga.
  */

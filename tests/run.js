@@ -3,6 +3,7 @@
 
 import './math.test.js';
 import './solver.test.js';
+import './guarantee.test.js';
 import { runAll } from './test-runner.js';
 
 const result = await runAll();
