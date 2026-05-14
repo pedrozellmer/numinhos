@@ -1,0 +1,12 @@
+{
+  "name": "numinhos",
+  "version": "0.4.0",
+  "description": "Jogo educacional de matemática para crianças brasileiras",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/run.js",
+    "dev": "python -m http.server 8765"
+  },
+  "homepage": "https://numinhos.app"
+}
