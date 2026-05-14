@@ -13,7 +13,10 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
-    width: 100%; height: 100%; overflow: hidden;
+    width: 100%;
+    height: 100vh;          /* fallback antigo */
+    height: 100dvh;         /* dynamic viewport height — respeita barra do browser no mobile */
+    overflow: hidden;
     font-family: 'Fredoka', sans-serif;
     color: #2d1f3d;
     -webkit-tap-highlight-color: transparent;
@@ -26,7 +29,7 @@
     display: flex; flex-direction: column;
     padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
     position: relative;
-    min-height: 100vh;
+    /* sem min-height — height fixo via 100dvh já garante */
   }
 
   /* ===== Mobile-only frame em telas grandes (desktop / tablet) ===== */
@@ -34,6 +37,7 @@
     html {
       background: radial-gradient(ellipse at top, #2d1f3d 0%, #1a1525 70%, #0a0510 100%);
       height: 100vh;
+      height: 100dvh;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -42,9 +46,9 @@
     body {
       width: 420px;
       height: min(880px, 100vh);
-      max-height: 100vh;
+      height: min(880px, 100dvh);
+      max-height: 100dvh;
       margin: 0;
-      min-height: unset;
       border-radius: 36px;
       box-shadow:
         0 30px 80px rgba(0,0,0,0.6),
@@ -64,6 +68,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 12px 16px 6px;
+    flex-shrink: 0;         /* NUNCA é comprimido pelo flex parent */
     z-index: 10;
   }
   .hud-group { display: flex; align-items: center; gap: 10px; }
@@ -91,7 +96,8 @@
 
   /* ============ ARENA ============ */
   #wrap {
-    flex: 1;
+    flex: 1 1 auto;
+    min-height: 0;          /* permite encolher abaixo da altura natural */
     width: 100%;
     display: flex;
     align-items: center;
@@ -110,10 +116,11 @@
 
   /* ============ HAND ============ */
   .hand {
-    padding: 10px 14px 16px;
+    padding: 8px 12px 12px;
     display: flex;
     gap: 8px;
     justify-content: center;
+    flex-shrink: 0;          /* NUNCA é comprimida pelo flex parent */
     min-height: 100px;
   }
   .card {
