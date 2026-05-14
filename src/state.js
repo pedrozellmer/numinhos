@@ -23,8 +23,8 @@ export const state = {
 };
 
 // Configuração global — calibrado pra jogo desafiador mas justo pra criança.
-// Velocidade 5.0: fase 1 ~13s até a linha, boss ~6s. Ritmo bem mais dinâmico.
-export const SPEED_MULTIPLIER = 5.0;
+// Velocidade 4.0: fase 1 ~16s até a linha, boss ~8s. Meio termo.
+export const SPEED_MULTIPLIER = 4.0;
 
 // Tamanho da mão de cartas em qualquer momento.
 export const HAND_SIZE = 4;
