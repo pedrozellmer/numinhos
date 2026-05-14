@@ -3,7 +3,7 @@
 
 import { state, SPEED_MULTIPLIER } from './state.js';
 import { isValidStep, applyOpDry } from './math.js';
-import { canSolveWithCards, findShortestSolution } from './solver.js';
+import { canSolveWithCards, findShortestSolution, canSolveEnemy } from './solver.js';
 import { colorFor } from './levels.js';
 import { soundCardApplied, soundEnemyDestroyed, soundInvalid, soundLifeLost } from './audio.js';
 
@@ -31,6 +31,15 @@ export function applyOp(card, enemy) {
     return 'invalid';
   }
   if (!isValidStep(v, nv, enemy.target)) return 'overshoot';
+
+  // REGRA COMPLETA: o resultado precisa AINDA ter caminho até o alvo.
+  // Sem isso, o jogador pode fazer uma jogada "válida" (não-overshoot) que
+  // trava o Numinho num beco sem saída (ex: 7+7=14 quando o pool não tem +1
+  // pra fechar em 15). Bloqueia a jogada e mantém a carta na mão.
+  if (nv !== enemy.target &&
+      !canSolveEnemy(nv, enemy.target, state.currentLevel.handPool)) {
+    return 'deadend';
+  }
 
   enemy.value = nv;
   enemy.flashTime = 0.4;
@@ -60,10 +69,14 @@ export function destroyEnemy(enemy) {
 
 // Feedback de carta inválida — não consome, balança o inimigo
 export function showInvalidFeedback(enemy, reason) {
+  let text;
+  if (reason === 'overshoot') text = 'passa do alvo!';
+  else if (reason === 'deadend') text = 'não chega no alvo!';
+  else text = 'não dá!';
   state.floatingTexts.push({
     x: enemy.x, y: enemy.y - 20,
     vy: -1.2, life: 1.2,
-    text: reason === 'overshoot' ? 'passa do alvo!' : 'não dá!',
+    text,
     color: '#888',
   });
   enemy.flashTime = 0.2;

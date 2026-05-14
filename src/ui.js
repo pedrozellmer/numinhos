@@ -238,9 +238,14 @@ function cardClass(op) {
 }
 
 // GARANTIA FINAL: se a mão não resolve NENHUM inimigo vivo, troca a carta
-// inútil automaticamente. Chamada após cada spawn no game loop.
-// A criança vê a carta velha sumir e a nova entrar destacada.
+// inútil automaticamente. Chamada em eventos (pós-spawn, pós-aplicação,
+// pós-escape) — NÃO todo frame, pra não pesar no celular.
 export function ensureHandPlayable() {
+  // NUNCA mexe na mão enquanto o jogador está arrastando uma carta —
+  // remover a carta do DOM no meio do drag corrompe o estado.
+  if (state.dragging) return;
+  if (!state.gameRunning) return;
+
   let safety = 6;
   while (safety-- > 0) {
     const alive = state.enemies.filter(e => !e.dying);
@@ -335,6 +340,8 @@ function tryApplyCard(card, clientX, clientY) {
     updateHUD();
     removeCard(card);
     refillHand();
+    // Após usar uma carta, recheca: a mão restante ainda joga em alguém?
+    ensureHandPlayable();
   } else {
     showInvalidFeedback(target, result);
   }

@@ -71,10 +71,12 @@ function loop(now) {
   if (state.gameRunning) {
     const { W, H } = getDims();
     const elapsed = (now - state.levelStartTime) / 1000;
+    const spawnedBefore = state.enemiesSpawned;
     maybeSpawnEnemies(elapsed, W);
-    // Garante toda frame que a mão tem ao menos uma jogada possível.
-    // Barato: early-exit imediato quando a mão já resolve alguém.
-    ensureHandPlayable();
+    // Garante mão jogável APÓS SPAWN (não todo frame — custo de CPU).
+    // Os outros pontos de checagem: após aplicar carta (em tryApplyCard)
+    // e após inimigo escapar (abaixo).
+    if (state.enemiesSpawned > spawnedBefore) ensureHandPlayable();
 
     for (let i = state.enemies.length - 1; i >= 0; i--) {
       const e = state.enemies[i];
@@ -92,6 +94,8 @@ function loop(now) {
         updateHUD();
         flashMsg('OPA!', '#e63946');
         if (state.lives <= 0) { loseLevel(); break; }
+        // Inimigo escapou — recheca a mão (os vivos restantes mudaram)
+        ensureHandPlayable();
       }
     }
 

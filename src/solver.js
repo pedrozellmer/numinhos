@@ -3,6 +3,12 @@
 
 import { applyOpDry } from './math.js';
 
+// Limites compartilhados — canSolveEnemy e findShortestSolution usam os
+// MESMOS, senão podem discordar (um acha caminho, o outro não).
+const SOLVER_MAX_DEPTH = 8;
+const SOLVER_MAX_STATES = 5000;
+const SOLVER_VALUE_CAP = 10000;
+
 /**
  * BFS limitada — verifica se um inimigo é teoricamente solucionável com o pool
  * (reuso ilimitado de cartas). Usado no boot pra validar todas as 40 fases.
@@ -11,20 +17,18 @@ export function canSolveEnemy(startValue, target, handPool) {
   if (startValue === target) return true;
   const visited = new Set([startValue]);
   let frontier = [startValue];
-  const maxDepth = 8;
-  const maxStates = 5000;
-  for (let depth = 0; depth < maxDepth && frontier.length > 0; depth++) {
+  for (let depth = 0; depth < SOLVER_MAX_DEPTH && frontier.length > 0; depth++) {
     const next = [];
     for (const v of frontier) {
       for (const card of handPool) {
         const nv = applyOpDry(card, v, target);
         if (nv === null) continue;
         if (nv === target) return true;
-        if (Math.abs(nv) > 1000) continue;
+        if (Math.abs(nv) > SOLVER_VALUE_CAP) continue;
         if (!visited.has(nv)) {
           visited.add(nv);
           next.push(nv);
-          if (visited.size > maxStates) return true;
+          if (visited.size > SOLVER_MAX_STATES) return true;
         }
       }
     }
@@ -56,12 +60,12 @@ export function canSolveWithCards(startValue, target, cards) {
  * (com reuso) que leva de startValue até target. [] se não encontrar.
  * Usado para construir mão inicial otimizada.
  */
-export function findShortestSolution(startValue, target, handPool, maxDepth = 6) {
+export function findShortestSolution(startValue, target, handPool) {
   if (startValue === target) return [];
   const visited = new Map();
   visited.set(startValue, []);
   let frontier = [startValue];
-  for (let depth = 0; depth < maxDepth && frontier.length > 0; depth++) {
+  for (let depth = 0; depth < SOLVER_MAX_DEPTH && frontier.length > 0; depth++) {
     const next = [];
     for (const v of frontier) {
       const path = visited.get(v);
@@ -70,10 +74,11 @@ export function findShortestSolution(startValue, target, handPool, maxDepth = 6)
         if (nv === null) continue;
         const newPath = [...path, card];
         if (nv === target) return newPath;
-        if (Math.abs(nv) > 10000) continue;
+        if (Math.abs(nv) > SOLVER_VALUE_CAP) continue;
         if (!visited.has(nv)) {
           visited.set(nv, newPath);
           next.push(nv);
+          if (visited.size > SOLVER_MAX_STATES) return []; // poda — fase válida não chega aqui
         }
       }
     }
