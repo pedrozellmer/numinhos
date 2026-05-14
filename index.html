@@ -967,14 +967,13 @@
             {value:3,target:9,delay:13.5,speed:0.18},  // ×3 ou +3+3
           ] },
         { id: 5, diff: 1, lives: 3, title: 'Mais opções',
-          handPool: [{op:'+',val:2},{op:'+',val:5},{op:'-',val:5},{op:'-',val:10},{op:'×',val:2},{op:'÷',val:2}],
+          handPool: [{op:'+',val:2},{op:'+',val:5},{op:'-',val:3},{op:'-',val:5},{op:'×',val:2},{op:'÷',val:2}],
           enemies: [
             {value:5,target:10,delay:1.0,speed:0.20},  // +5 ou ×2
-            {value:8,target:0,delay:3.5,speed:0.20},   // -5-5? não, vou recalcular... -5-3 não tem -3, hmm
-                                                       // ×0 não tem, ÷2÷2÷2÷2... wait 8÷2=4. Hmm. Vou trocar
-            {value:10,target:0,delay:6.0,speed:0.22},  // -10 ou -5-5
+            {value:8,target:0,delay:3.5,speed:0.20},   // -5-3 (combo de 2) ou -3-5
+            {value:10,target:0,delay:6.0,speed:0.22},  // -5-5 ou -5-3-2... wait +2 não pode (aumenta)
             {value:8,target:4,delay:8.5,speed:0.22},   // ÷2
-            {value:3,target:6,delay:11.0,speed:0.22},  // ×2 ou +5-2... só -5 e +5 e +2. 3+2=5, +5? não. Hmm.
+            {value:3,target:6,delay:11.0,speed:0.22},  // ×2 (3×2=6) ou +3 não tem
           ] },
         { id: 6, diff: 1, lives: 3, title: 'Estratégia',
           handPool: [{op:'+',val:5},{op:'+',val:10},{op:'-',val:10},{op:'×',val:3},{op:'×',val:5},{op:'÷',val:3}],
@@ -1268,7 +1267,7 @@
     for (const proto of lvl.handPool) {
       let score = 0;
       for (const enemy of alive) {
-        const after = applyOpDry(proto, enemy.value);
+        const after = applyOpDry(proto, enemy.value, enemy.target);
         if (after === null) continue;
         const distBefore = Math.abs(enemy.value - enemy.target);
         const distAfter = Math.abs(after - enemy.target);
@@ -1296,16 +1295,20 @@
     return arr;
   }
 
-  // Aplica operação "a seco" — retorna resultado ou null se inválida (÷ não exata).
-  function applyOpDry(card, value) {
-    if (card.op === '+') return value + card.val;
-    if (card.op === '-') return value - card.val;
-    if (card.op === '×') return value * card.val;
-    if (card.op === '÷') {
+  // Aplica operação "a seco". Retorna null se:
+  //  - operação intrinsecamente inválida (÷ não-exata, ÷0)
+  //  - passa de target ou afasta dele (regra isValidStep)
+  function applyOpDry(card, value, target) {
+    let nv;
+    if (card.op === '+') nv = value + card.val;
+    else if (card.op === '-') nv = value - card.val;
+    else if (card.op === '×') nv = value * card.val;
+    else if (card.op === '÷') {
       if (card.val === 0 || value === 0 || value % card.val !== 0) return null;
-      return value / card.val;
-    }
-    return null;
+      nv = value / card.val;
+    } else return null;
+    if (target != null && !isValidStep(value, nv, target)) return null;
+    return nv;
   }
 
   // DFS: existe sequência de cartas (sem reuso) de startValue até target?
@@ -1313,7 +1316,7 @@
     if (startValue === target) return true;
     if (cards.length === 0) return false;
     for (let i = 0; i < cards.length; i++) {
-      const nv = applyOpDry(cards[i], startValue);
+      const nv = applyOpDry(cards[i], startValue, target);
       if (nv === null) continue;
       if (Math.abs(nv) > 10000) continue;
       if (nv === target) return true;
@@ -1450,47 +1453,63 @@
       if (d < bestDist) { bestDist = d; target = e; }
     }
     if (target) {
-      const ok = applyOp(card, target);
-      if (ok) {
+      const result = applyOp(card, target);
+      if (result === 'ok') {
         removeCard(card);
         refillHand();
       } else {
-        // Carta inválida (divisão não exata) — mostra feedback e mantém na mão
-        showInvalidFeedback(target);
+        // Carta inválida — não consome, mostra feedback e mantém na mão
+        showInvalidFeedback(target, result);
       }
     }
   }
 
-  // Mostra feedback visual quando carta é inválida (divisão não exata)
-  function showInvalidFeedback(enemy) {
+  // Feedback visual quando carta é inválida (divisão não-exata ou overshoot)
+  function showInvalidFeedback(enemy, reason) {
+    const text = reason === 'overshoot' ? 'passa do alvo!' : 'não dá!';
     state.floatingTexts.push({
       x: enemy.x, y: enemy.y - 20,
       vy: -1.2,
-      life: 1,
-      text: 'não dá!',
+      life: 1.2,
+      text,
       color: '#888',
     });
     enemy.flashTime = 0.2;
     if (navigator.vibrate) navigator.vibrate([20, 30, 20]);
   }
 
-  // Retorna true se a carta foi aplicada com sucesso, false se inválida
+  // Regra matemática unificada: newValue tem que estar ENTRE value e target.
+  // Bloqueia: passar do target, ir pro lado contrário, ×0 que destrói progresso.
+  // Permite: aproximar, manter (igualdade), atingir target exato.
+  function isValidStep(value, newValue, target) {
+    if (value === target) return true;
+    if (value < target) return newValue >= value && newValue <= target;
+    return newValue >= target && newValue <= value;
+  }
+
+  // Retorna 'ok' | 'invalid' (÷ não exata) | 'overshoot' (passa/afasta do alvo)
   function applyOp(card, enemy) {
-    let v = enemy.value;
+    const v = enemy.value;
+    let nv;
     if (card.op === '+') {
-      v = v + card.val;
+      nv = v + card.val;
     } else if (card.op === '-') {
-      v = v - card.val;
+      nv = v - card.val;
     } else if (card.op === '×') {
-      v = v * card.val;
+      nv = v * card.val;
     } else if (card.op === '÷') {
-      // Divisão EXATA — só aplica se o resultado for inteiro (pedagogicamente correto)
-      if (card.val === 0) return false;            // divisão por zero
-      if (v === 0) return false;                   // já é zero
-      if (v % card.val !== 0) return false;        // não é divisão exata
-      v = v / card.val;
+      // Divisão EXATA — só aplica se o resultado for inteiro
+      if (card.val === 0) return 'invalid';
+      if (v === 0) return 'invalid';
+      if (v % card.val !== 0) return 'invalid';
+      nv = v / card.val;
+    } else {
+      return 'invalid';
     }
-    enemy.value = v;
+    // Bloqueia se afasta do target ou passa dele
+    if (!isValidStep(v, nv, enemy.target)) return 'overshoot';
+
+    enemy.value = nv;
     enemy.flashTime = 0.4;
     // Texto flutuante
     const opSymbol = card.op === '×' ? '×' : card.op === '÷' ? '÷' : card.op;
@@ -1505,8 +1524,8 @@
     if (navigator.vibrate) navigator.vibrate(20);
 
     // Inimigo morre ao atingir target (default 0)
-    if (v === enemy.target) destroyEnemy(enemy);
-    return true;
+    if (nv === enemy.target) destroyEnemy(enemy);
+    return 'ok';
   }
 
   function destroyEnemy(enemy) {
@@ -1773,13 +1792,18 @@
       updateParticles(dt);
       if (state.shake > 0) state.shake = Math.max(0, state.shake - dt * 30);
 
-      // Vitória? Todos spawnados e nenhum vivo
+      // Fim de fase: todos spawnados e arena vazia
       if (
         state.gameRunning &&
         state.enemiesSpawned >= state.currentLevel.enemies.length &&
         state.enemies.length === 0
       ) {
-        winLevel();
+        const total = state.currentLevel.enemies.length;
+        if (state.enemiesKilled >= total) {
+          winLevel();      // matou todo mundo → vitória
+        } else {
+          loseLevel();     // algum escapou → derrota
+        }
       }
     }
 
@@ -1924,30 +1948,25 @@
   }
 
   // BFS limitada: do valor inicial até o target aplicando cartas do pool.
+  // Usa applyOpDry pra respeitar a regra isValidStep (overshoot bloqueado).
   function canSolveEnemy(startValue, target, handPool) {
     if (startValue === target) return true;
     const visited = new Set([startValue]);
     let frontier = [startValue];
-    const maxDepth = 8;       // até 8 cartas pra zerar
+    const maxDepth = 8;
     const maxStates = 5000;
     for (let depth = 0; depth < maxDepth && frontier.length > 0; depth++) {
       const next = [];
       for (const v of frontier) {
         for (const card of handPool) {
-          let nv;
-          if (card.op === '+') nv = v + card.val;
-          else if (card.op === '-') nv = v - card.val;
-          else if (card.op === '×') nv = v * card.val;
-          else if (card.op === '÷') {
-            if (card.val === 0 || v === 0 || v % card.val !== 0) continue;
-            nv = v / card.val;
-          } else continue;
+          const nv = applyOpDry(card, v, target);
+          if (nv === null) continue;
           if (nv === target) return true;
-          if (Math.abs(nv) > 1000) continue; // poda
+          if (Math.abs(nv) > 1000) continue;
           if (!visited.has(nv)) {
             visited.add(nv);
             next.push(nv);
-            if (visited.size > maxStates) return true; // assume sim, evita travar
+            if (visited.size > maxStates) return true;
           }
         }
       }
