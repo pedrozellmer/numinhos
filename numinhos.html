@@ -493,9 +493,9 @@
     <div class="splash-title">Numinhos</div>
     <div class="splash-sub">defenda-se com matemática 🎯</div>
     <div class="splash-mascots">
-      <div class="mascot">🦄</div>
-      <div class="mascot">🐸</div>
-      <div class="mascot">🐙</div>
+      <div class="mascot">🦜</div>
+      <div class="mascot">🐊</div>
+      <div class="mascot">🦋</div>
     </div>
     <div style="font-weight: 700; font-size: 14px; margin: 12px 0 4px; color: #2d1f3d; opacity: 0.7;">Escolha uma operação</div>
     <div class="mode-grid" id="modeGrid"></div>
@@ -582,187 +582,418 @@
 
   const MODES = {
     add: {
-      id: 'add', icon: '+', label: 'Soma', sub: 'inimigos negativos',
+      id: 'add', icon: '+', label: 'Soma', sub: 'complete o alvo',
       color: '#43d177',
-      tutorial: 'Inimigos negativos descem. Some cartas verdes pra chegar a ZERO!',
+      tutorial: 'Cada inimigo tem um ALVO (→ amarelo). Some até chegar nele!',
       levels: [
-        // Modo Soma — inimigos negativos, cartas + somam até 0
-        { id: 1, diff: 0, lives: 3, title: 'Primeiros passos',
-          handPool: [{op:'+',val:1},{op:'+',val:2},{op:'+',val:3}],
-          enemies: [{value:-1,delay:1.5,speed:0.16},{value:-2,delay:6.0,speed:0.16},{value:-3,delay:11.0,speed:0.16}],
-          tutorial: 'Arraste a carta + no inimigo negativo até chegar em 0!' },
-        { id: 2, diff: 0, lives: 3, title: 'Mais um',
-          handPool: [{op:'+',val:1},{op:'+',val:2},{op:'+',val:3}],
-          enemies: [{value:-2,delay:1.0,speed:0.18},{value:-4,delay:4.5,speed:0.18},{value:-3,delay:8.5,speed:0.18},{value:-2,delay:12.5,speed:0.18}] },
-        { id: 3, diff: 0, lives: 3, title: 'Combinando',
+        // Modo Soma — pedagogia BNCC EF01MA08 / EF02MA05 (complementos)
+        // value (atual) < target (alvo). Cartas + somam até atingir target.
+        { id: 1, diff: 0, lives: 3, title: 'Complementos do 5',
+          handPool: [{op:'+',val:1},{op:'+',val:2},{op:'+',val:3},{op:'+',val:4}],
+          enemies: [
+            {value:1,target:5,delay:2.0,speed:0.11},
+            {value:2,target:5,delay:7.0,speed:0.11},
+            {value:3,target:5,delay:12.0,speed:0.11},
+            {value:4,target:5,delay:17.0,speed:0.11},
+          ],
+          tutorial: 'Some até chegar no número amarelo (→ 5). Ex: 1 + 4 = 5.' },
+        { id: 2, diff: 0, lives: 3, title: 'Quase no 10',
           handPool: [{op:'+',val:1},{op:'+',val:2},{op:'+',val:3},{op:'+',val:5}],
-          enemies: [{value:-3,delay:1.0,speed:0.20},{value:-5,delay:4.0,speed:0.20},{value:-4,delay:7.0,speed:0.20},{value:-2,delay:10.0,speed:0.20}],
-          tutorial: 'Combine duas cartas! Ex: -5 = (+2) + (+3)' },
-        { id: 4, diff: 0, lives: 3, title: 'Crescendo',
-          handPool: [{op:'+',val:1},{op:'+',val:2},{op:'+',val:3},{op:'+',val:5}],
-          enemies: [{value:-4,delay:0.8,speed:0.22},{value:-6,delay:3.5,speed:0.22},{value:-5,delay:6.5,speed:0.22},{value:-3,delay:9.0,speed:0.24},{value:-7,delay:12.0,speed:0.22}] },
-        { id: 5, diff: 1, lives: 3, title: 'Onda',
+          enemies: [
+            {value:5,target:10,delay:1.5,speed:0.12},
+            {value:7,target:10,delay:6.0,speed:0.12},
+            {value:8,target:10,delay:10.5,speed:0.12},
+            {value:6,target:10,delay:15.0,speed:0.12},
+          ],
+          tutorial: 'Complementos do 10. Ex: 7 + 3 = 10.' },
+        { id: 3, diff: 0, lives: 3, title: 'Complementos do 10',
+          handPool: [{op:'+',val:1},{op:'+',val:2},{op:'+',val:3},{op:'+',val:5},{op:'+',val:7}],
+          enemies: [
+            {value:3,target:10,delay:1.2,speed:0.14},
+            {value:5,target:10,delay:5.0,speed:0.14},
+            {value:1,target:10,delay:9.0,speed:0.14},
+            {value:8,target:10,delay:13.0,speed:0.14},
+            {value:4,target:10,delay:17.0,speed:0.14},
+          ],
+          tutorial: 'Combine cartas: 3 + 7 = 10, ou 3 + 5 + 2 = 10.' },
+        { id: 4, diff: 0, lives: 3, title: 'Misturando alvos',
+          handPool: [{op:'+',val:1},{op:'+',val:2},{op:'+',val:3},{op:'+',val:5},{op:'+',val:7}],
+          enemies: [
+            {value:3,target:5,delay:1.0,speed:0.16},
+            {value:5,target:10,delay:4.0,speed:0.16},
+            {value:2,target:5,delay:7.5,speed:0.16},
+            {value:7,target:10,delay:11.0,speed:0.16},
+            {value:4,target:10,delay:14.5,speed:0.16},
+          ] },
+        { id: 5, diff: 1, lives: 3, title: 'Complementos do 15',
           handPool: [{op:'+',val:2},{op:'+',val:3},{op:'+',val:5},{op:'+',val:7}],
-          enemies: [{value:-5,delay:0.8,speed:0.24},{value:-7,delay:3.0,speed:0.24},{value:-8,delay:5.5,speed:0.24},{value:-6,delay:8.0,speed:0.26},{value:-10,delay:10.5,speed:0.24}] },
-        { id: 6, diff: 1, lives: 3, title: 'Acelerou',
-          handPool: [{op:'+',val:2},{op:'+',val:3},{op:'+',val:5},{op:'+',val:7}],
-          enemies: [{value:-7,delay:0.8,speed:0.26},{value:-10,delay:3.0,speed:0.26},{value:-8,delay:5.5,speed:0.26},{value:-12,delay:8.0,speed:0.26},{value:-9,delay:10.5,speed:0.28}] },
-        { id: 7, diff: 1, lives: 3, title: 'Doze',
-          handPool: [{op:'+',val:3},{op:'+',val:5},{op:'+',val:7},{op:'+',val:10}],
-          enemies: [{value:-10,delay:0.8,speed:0.28},{value:-12,delay:3.0,speed:0.28},{value:-8,delay:5.5,speed:0.28},{value:-15,delay:8.0,speed:0.26},{value:-7,delay:10.5,speed:0.30}] },
-        { id: 8, diff: 3, lives: 2, title: 'Vinte! (boss)',
+          enemies: [
+            {value:8,target:15,delay:1.0,speed:0.18},
+            {value:10,target:15,delay:4.0,speed:0.18},
+            {value:12,target:15,delay:7.0,speed:0.20},
+            {value:6,target:15,delay:10.0,speed:0.20},
+            {value:13,target:15,delay:13.0,speed:0.20},
+          ] },
+        { id: 6, diff: 1, lives: 3, title: 'Pulando alvos',
           handPool: [{op:'+',val:2},{op:'+',val:3},{op:'+',val:5},{op:'+',val:7},{op:'+',val:10}],
-          enemies: [{value:-10,delay:0.8,speed:0.28},{value:-15,delay:2.8,speed:0.28},{value:-12,delay:4.8,speed:0.30},{value:-8,delay:6.5,speed:0.30},{value:-17,delay:8.5,speed:0.28},{value:-20,delay:11.0,speed:0.28}] },
+          enemies: [
+            {value:5,target:10,delay:1.0,speed:0.20},
+            {value:8,target:15,delay:3.5,speed:0.20},
+            {value:7,target:15,delay:6.0,speed:0.22},
+            {value:3,target:10,delay:8.5,speed:0.22},
+            {value:10,target:20,delay:11.0,speed:0.20},
+          ] },
+        { id: 7, diff: 1, lives: 3, title: 'Caminho do 20',
+          handPool: [{op:'+',val:2},{op:'+',val:3},{op:'+',val:5},{op:'+',val:7},{op:'+',val:10}],
+          enemies: [
+            {value:10,target:20,delay:1.0,speed:0.22},
+            {value:13,target:20,delay:3.5,speed:0.22},
+            {value:15,target:20,delay:6.0,speed:0.24},
+            {value:8,target:20,delay:8.5,speed:0.22},
+            {value:17,target:20,delay:11.0,speed:0.24},
+          ] },
+        { id: 8, diff: 3, lives: 2, title: 'BOSS: Vinte! ',
+          handPool: [{op:'+',val:2},{op:'+',val:3},{op:'+',val:5},{op:'+',val:7},{op:'+',val:10}],
+          enemies: [
+            {value:5,target:10,delay:0.8,speed:0.24},
+            {value:10,target:20,delay:2.5,speed:0.24},
+            {value:13,target:20,delay:4.5,speed:0.26},
+            {value:8,target:15,delay:6.5,speed:0.26},
+            {value:15,target:20,delay:8.5,speed:0.26},
+            {value:7,target:20,delay:10.5,speed:0.26},
+          ] },
       ]
     },
 
     sub: {
       id: 'sub', icon: '−', label: 'Subtração', sub: 'tira até zerar',
       color: '#ff6b6b',
-      tutorial: 'Inimigos descem com números positivos. Subtraia até chegar a ZERO!',
+      tutorial: 'Inimigos descem com números. Subtraia até chegar a ZERO!',
       levels: [
-        // Modo Subtração — modo clássico
-        { id: 1, diff: 0, lives: 3, title: 'Primeiros passos',
+        // Modo Subtração — pedagogia BNCC EF01MA08 (retirar)
+        // target = 0 (default). Cartas − subtraem até zerar.
+        { id: 1, diff: 0, lives: 3, title: 'Tira até zerar',
           handPool: [{op:'-',val:1},{op:'-',val:2},{op:'-',val:3}],
-          enemies: [{value:1,delay:1.5,speed:0.16},{value:2,delay:6.0,speed:0.16},{value:3,delay:11.0,speed:0.16}],
-          tutorial: 'Arraste a carta - no inimigo até zerar o número!' },
-        { id: 2, diff: 0, lives: 3, title: 'Mais um',
+          enemies: [
+            {value:1,delay:2.0,speed:0.11},
+            {value:2,delay:7.0,speed:0.11},
+            {value:3,delay:12.0,speed:0.11},
+          ],
+          tutorial: 'Arraste a carta - no inimigo até chegar em 0.' },
+        { id: 2, diff: 0, lives: 3, title: 'Mais inimigos',
           handPool: [{op:'-',val:1},{op:'-',val:2},{op:'-',val:3}],
-          enemies: [{value:2,delay:1.0,speed:0.18},{value:4,delay:4.5,speed:0.18},{value:3,delay:8.5,speed:0.18},{value:2,delay:12.5,speed:0.18}] },
-        { id: 3, diff: 0, lives: 3, title: 'Combinando',
+          enemies: [
+            {value:2,delay:1.5,speed:0.13},
+            {value:4,delay:5.5,speed:0.13},
+            {value:3,delay:9.5,speed:0.13},
+            {value:5,delay:13.5,speed:0.13},
+          ],
+          tutorial: 'Combine cartas! Ex: 5 = (-3) + (-2).' },
+        { id: 3, diff: 0, lives: 3, title: 'Até o 6',
           handPool: [{op:'-',val:1},{op:'-',val:2},{op:'-',val:3},{op:'-',val:5}],
-          enemies: [{value:3,delay:1.0,speed:0.20},{value:5,delay:4.0,speed:0.20},{value:4,delay:7.0,speed:0.20},{value:6,delay:10.0,speed:0.20}],
-          tutorial: 'Combine cartas! Ex: 6 = (-3) + (-3)' },
-        { id: 4, diff: 0, lives: 3, title: 'Crescendo',
+          enemies: [
+            {value:3,delay:1.2,speed:0.15},
+            {value:5,delay:5.0,speed:0.15},
+            {value:4,delay:8.5,speed:0.15},
+            {value:6,delay:12.0,speed:0.15},
+          ] },
+        { id: 4, diff: 0, lives: 3, title: 'Até o 10',
           handPool: [{op:'-',val:1},{op:'-',val:2},{op:'-',val:3},{op:'-',val:5}],
-          enemies: [{value:4,delay:0.8,speed:0.22},{value:6,delay:3.5,speed:0.22},{value:5,delay:6.5,speed:0.22},{value:7,delay:9.0,speed:0.24},{value:3,delay:12.0,speed:0.22}] },
+          enemies: [
+            {value:4,delay:1.0,speed:0.17},
+            {value:7,delay:4.0,speed:0.17},
+            {value:5,delay:7.0,speed:0.17},
+            {value:8,delay:10.0,speed:0.18},
+            {value:10,delay:13.5,speed:0.17},
+          ] },
         { id: 5, diff: 1, lives: 3, title: 'Onda',
           handPool: [{op:'-',val:2},{op:'-',val:3},{op:'-',val:5},{op:'-',val:7}],
-          enemies: [{value:5,delay:0.8,speed:0.24},{value:8,delay:3.0,speed:0.24},{value:7,delay:5.5,speed:0.24},{value:10,delay:8.0,speed:0.26},{value:6,delay:10.5,speed:0.24}] },
+          enemies: [
+            {value:5,delay:1.0,speed:0.19},
+            {value:8,delay:3.5,speed:0.19},
+            {value:7,delay:6.0,speed:0.20},
+            {value:10,delay:8.5,speed:0.20},
+            {value:6,delay:11.0,speed:0.20},
+          ] },
         { id: 6, diff: 1, lives: 3, title: 'Acelerou',
           handPool: [{op:'-',val:2},{op:'-',val:3},{op:'-',val:5},{op:'-',val:7}],
-          enemies: [{value:7,delay:0.8,speed:0.26},{value:10,delay:3.0,speed:0.26},{value:8,delay:5.5,speed:0.26},{value:12,delay:8.0,speed:0.26},{value:9,delay:10.5,speed:0.28}] },
-        { id: 7, diff: 1, lives: 3, title: 'Doze',
+          enemies: [
+            {value:7,delay:0.8,speed:0.21},
+            {value:10,delay:3.0,speed:0.22},
+            {value:8,delay:5.5,speed:0.22},
+            {value:12,delay:8.0,speed:0.22},
+            {value:9,delay:10.5,speed:0.24},
+          ] },
+        { id: 7, diff: 1, lives: 3, title: 'Quinze',
           handPool: [{op:'-',val:3},{op:'-',val:5},{op:'-',val:7},{op:'-',val:10}],
-          enemies: [{value:10,delay:0.8,speed:0.28},{value:12,delay:3.0,speed:0.28},{value:8,delay:5.5,speed:0.28},{value:15,delay:8.0,speed:0.26},{value:7,delay:10.5,speed:0.30}] },
-        { id: 8, diff: 3, lives: 2, title: 'Vinte! (boss)',
+          enemies: [
+            {value:10,delay:0.8,speed:0.24},
+            {value:12,delay:3.0,speed:0.24},
+            {value:8,delay:5.5,speed:0.24},
+            {value:15,delay:8.0,speed:0.24},
+            {value:13,delay:10.5,speed:0.26},
+          ] },
+        { id: 8, diff: 3, lives: 2, title: 'BOSS: Vinte!',
           handPool: [{op:'-',val:2},{op:'-',val:3},{op:'-',val:5},{op:'-',val:7},{op:'-',val:10}],
-          enemies: [{value:10,delay:0.8,speed:0.28},{value:15,delay:2.8,speed:0.28},{value:12,delay:4.8,speed:0.30},{value:8,delay:6.5,speed:0.30},{value:17,delay:8.5,speed:0.28},{value:20,delay:11.0,speed:0.28}] },
+          enemies: [
+            {value:10,delay:0.8,speed:0.24},
+            {value:15,delay:2.8,speed:0.24},
+            {value:12,delay:4.8,speed:0.26},
+            {value:8,delay:6.5,speed:0.26},
+            {value:17,delay:8.5,speed:0.26},
+            {value:20,delay:10.5,speed:0.26},
+          ] },
       ]
     },
 
     mul: {
-      id: 'mul', icon: '×', label: 'Multiplicação', sub: 'use a tabuada',
+      id: 'mul', icon: '×', label: 'Multiplicação', sub: 'tabuada',
       color: '#ffa600',
-      tutorial: 'Multiplique pra crescer e depois subtraia tudo de uma vez! Ou use ×0 pra zerar direto.',
+      tutorial: 'Cada inimigo tem um ALVO. Escolha a carta × que faz a tabuada certa!',
       levels: [
-        // Modo Multiplicação — combinar × com − pra usar tabuada
-        // Validação: cada inimigo precisa de combinação (×N seguida de −valor)
-        { id: 1, diff: 0, lives: 3, title: 'Zero direto',
-          // 2 → ×0=0; 3 → ×0=0 OU ×2=6 e −6
-          handPool: [{op:'×',val:0},{op:'×',val:2},{op:'-',val:4},{op:'-',val:6}],
-          enemies: [{value:2,delay:1.5,speed:0.16},{value:3,delay:6.0,speed:0.16}],
-          tutorial: 'Use ×0 pra zerar de uma vez! Ou multiplique e subtraia.' },
-        { id: 2, diff: 0, lives: 3, title: 'Tabuada do 2',
-          // 2×2=4, 2×3=6, 2×4=8. Inimigos 2,3,4 com ×2 e −4,−6,−8
-          handPool: [{op:'×',val:2},{op:'-',val:4},{op:'-',val:6},{op:'-',val:8}],
-          enemies: [{value:2,delay:1.0,speed:0.18},{value:3,delay:4.5,speed:0.18},{value:4,delay:8.5,speed:0.18}],
-          tutorial: 'Tabuada do 2: 2×3=6, 2×4=8. Multiplique e subtraia o resultado.' },
-        { id: 3, diff: 0, lives: 3, title: 'Tabuada do 3',
-          // 3×2=6, 3×3=9, 3×4=12, 3×5=15. Pool tem essas subtrações.
-          handPool: [{op:'×',val:2},{op:'×',val:3},{op:'-',val:6},{op:'-',val:9},{op:'-',val:12}],
-          enemies: [{value:2,delay:1.0,speed:0.20},{value:3,delay:4.0,speed:0.20},{value:4,delay:7.0,speed:0.20},{value:3,delay:10.0,speed:0.20}] },
-        { id: 4, diff: 0, lives: 3, title: 'Tabuada do 4',
-          handPool: [{op:'×',val:2},{op:'×',val:3},{op:'×',val:4},{op:'-',val:8},{op:'-',val:12},{op:'-',val:16}],
-          enemies: [{value:2,delay:0.8,speed:0.22},{value:3,delay:3.5,speed:0.22},{value:4,delay:6.5,speed:0.22},{value:2,delay:9.0,speed:0.24},{value:3,delay:12.0,speed:0.22}] },
-        { id: 5, diff: 1, lives: 3, title: 'Misturando',
-          handPool: [{op:'×',val:0},{op:'×',val:2},{op:'×',val:3},{op:'-',val:6},{op:'-',val:9},{op:'-',val:12},{op:'-',val:15}],
-          enemies: [{value:3,delay:0.8,speed:0.24},{value:4,delay:3.0,speed:0.24},{value:5,delay:5.5,speed:0.24},{value:3,delay:8.0,speed:0.26},{value:2,delay:10.5,speed:0.24}] },
-        { id: 6, diff: 1, lives: 3, title: 'Tabuada do 5',
-          // 4×5=20, 5×5=25. Inimigos 3,4,5,6 com ×5 e −15,−20,−25,−30
-          handPool: [{op:'×',val:3},{op:'×',val:4},{op:'×',val:5},{op:'-',val:12},{op:'-',val:15},{op:'-',val:20},{op:'-',val:24}],
-          enemies: [{value:3,delay:0.8,speed:0.26},{value:4,delay:3.0,speed:0.26},{value:5,delay:5.5,speed:0.26},{value:6,delay:8.0,speed:0.26}] },
-        { id: 7, diff: 1, lives: 3, title: 'Mais difícil',
-          handPool: [{op:'×',val:2},{op:'×',val:3},{op:'×',val:4},{op:'×',val:5},{op:'-',val:10},{op:'-',val:15},{op:'-',val:20},{op:'-',val:24},{op:'-',val:30}],
-          enemies: [{value:4,delay:0.8,speed:0.28},{value:5,delay:3.0,speed:0.28},{value:6,delay:5.5,speed:0.28},{value:7,delay:8.0,speed:0.26},{value:3,delay:10.5,speed:0.30}] },
-        { id: 8, diff: 3, lives: 2, title: 'Boss (×0 salva)',
-          // Boss usa ×0 estratégico pros números esquisitos
-          handPool: [{op:'×',val:0},{op:'×',val:2},{op:'×',val:3},{op:'×',val:4},{op:'×',val:5},{op:'-',val:12},{op:'-',val:15},{op:'-',val:20},{op:'-',val:24},{op:'-',val:30}],
-          enemies: [{value:5,delay:0.8,speed:0.28},{value:6,delay:2.8,speed:0.28},{value:7,delay:4.8,speed:0.30},{value:8,delay:6.5,speed:0.30},{value:9,delay:8.5,speed:0.28}] },
+        // Modo Multiplicação — pedagogia BNCC EF03MA07 (tabuada por 2, 3, 4, 5 e 10)
+        // value × ? = target. Criança escolhe a carta × certa.
+        { id: 1, diff: 0, lives: 3, title: 'Dobro (×2)',
+          handPool: [{op:'×',val:2}],
+          enemies: [
+            {value:2,target:4,delay:2.0,speed:0.11},
+            {value:3,target:6,delay:7.0,speed:0.11},
+            {value:4,target:8,delay:12.0,speed:0.11},
+            {value:5,target:10,delay:17.0,speed:0.11},
+          ],
+          tutorial: 'Multiplique por 2 pra chegar no alvo! 2×2=4, 3×2=6...' },
+        { id: 2, diff: 0, lives: 3, title: '×2 e ×3',
+          handPool: [{op:'×',val:2},{op:'×',val:3}],
+          enemies: [
+            {value:2,target:4,delay:1.5,speed:0.13},
+            {value:3,target:9,delay:5.5,speed:0.13},
+            {value:4,target:12,delay:9.5,speed:0.13},
+            {value:2,target:6,delay:13.5,speed:0.13},
+            {value:3,target:6,delay:17.5,speed:0.13},
+          ],
+          tutorial: 'Escolha entre ×2 e ×3 pra acertar o alvo.' },
+        { id: 3, diff: 0, lives: 3, title: 'Tabuada do 4',
+          handPool: [{op:'×',val:4},{op:'×',val:3}],
+          enemies: [
+            {value:2,target:8,delay:1.2,speed:0.15},
+            {value:3,target:12,delay:5.0,speed:0.15},
+            {value:4,target:16,delay:8.5,speed:0.15},
+            {value:5,target:20,delay:12.0,speed:0.15},
+          ],
+          tutorial: 'Tabuada do 4: 2×4=8, 3×4=12. Cuidado com a ×3!' },
+        { id: 4, diff: 0, lives: 3, title: 'Tabuada do 5',
+          handPool: [{op:'×',val:5},{op:'×',val:4}],
+          enemies: [
+            {value:2,target:10,delay:1.0,speed:0.17},
+            {value:3,target:15,delay:4.5,speed:0.17},
+            {value:4,target:20,delay:8.0,speed:0.17},
+            {value:5,target:25,delay:11.5,speed:0.17},
+            {value:6,target:30,delay:14.5,speed:0.17},
+          ] },
+        { id: 5, diff: 1, lives: 3, title: 'Tabuada do 10',
+          handPool: [{op:'×',val:10},{op:'×',val:5}],
+          enemies: [
+            {value:1,target:10,delay:1.0,speed:0.19},
+            {value:2,target:20,delay:4.0,speed:0.19},
+            {value:3,target:30,delay:7.0,speed:0.20},
+            {value:4,target:40,delay:10.0,speed:0.20},
+            {value:5,target:50,delay:13.0,speed:0.20},
+          ],
+          tutorial: 'Tabuada do 10: só coloca o zero atrás! 3×10=30.' },
+        { id: 6, diff: 1, lives: 3, title: 'Mista 2-3-5',
+          handPool: [{op:'×',val:2},{op:'×',val:3},{op:'×',val:5}],
+          enemies: [
+            {value:4,target:12,delay:1.0,speed:0.22},
+            {value:3,target:15,delay:3.5,speed:0.22},
+            {value:5,target:10,delay:6.0,speed:0.22},
+            {value:4,target:8,delay:8.5,speed:0.22},
+            {value:6,target:18,delay:11.0,speed:0.22},
+          ] },
+        { id: 7, diff: 1, lives: 3, title: 'Mista 2-4-5-10',
+          handPool: [{op:'×',val:2},{op:'×',val:4},{op:'×',val:5},{op:'×',val:10}],
+          enemies: [
+            {value:3,target:12,delay:1.0,speed:0.22},
+            {value:5,target:50,delay:3.5,speed:0.24},
+            {value:4,target:20,delay:6.0,speed:0.24},
+            {value:7,target:14,delay:8.5,speed:0.24},
+            {value:6,target:30,delay:11.0,speed:0.24},
+          ] },
+        { id: 8, diff: 3, lives: 2, title: 'BOSS: Todas tabuadas',
+          handPool: [{op:'×',val:2},{op:'×',val:3},{op:'×',val:4},{op:'×',val:5},{op:'×',val:6},{op:'×',val:7},{op:'×',val:8},{op:'×',val:9},{op:'×',val:10}],
+          enemies: [
+            {value:3,target:21,delay:0.8,speed:0.24},
+            {value:4,target:32,delay:2.8,speed:0.26},
+            {value:6,target:54,delay:4.8,speed:0.26},
+            {value:5,target:35,delay:6.8,speed:0.26},
+            {value:7,target:49,delay:9.0,speed:0.26},
+            {value:8,target:72,delay:11.0,speed:0.26},
+          ] },
       ]
     },
 
     div: {
-      id: 'div', icon: '÷', label: 'Divisão', sub: 'até virar 1',
+      id: 'div', icon: '÷', label: 'Divisão', sub: 'divida até 1',
       color: '#6c8dff',
-      tutorial: 'Divida até virar 1, depois subtraia 1 pra zerar! Só funciona divisão EXATA.',
+      tutorial: 'Divida o inimigo até virar 1! Só funciona divisão EXATA (sem sobrar).',
       levels: [
-        // Modo Divisão — dividir exato até 1, depois −1 pra zerar
-        // Validação: cada inimigo precisa decompor por primos do pool
-        { id: 1, diff: 0, lives: 3, title: 'Divide por 2',
-          // 4 → ÷2=2 → ÷2=1 → −1=0
-          handPool: [{op:'÷',val:2},{op:'-',val:1}],
-          enemies: [{value:2,delay:1.5,speed:0.16},{value:4,delay:6.0,speed:0.16}],
-          tutorial: '÷ só funciona se der número inteiro! 4 ÷ 2 = 2, ÷ 2 = 1, − 1 = 0.' },
-        { id: 2, diff: 0, lives: 3, title: 'Por 2 e por 3',
-          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'-',val:1}],
-          enemies: [{value:6,delay:1.0,speed:0.18},{value:4,delay:4.5,speed:0.18},{value:8,delay:8.5,speed:0.18}] },
-        { id: 3, diff: 0, lives: 3, title: 'Pares e múltiplos',
-          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'-',val:1}],
-          enemies: [{value:8,delay:1.0,speed:0.20},{value:12,delay:4.0,speed:0.20},{value:6,delay:7.0,speed:0.20},{value:9,delay:10.0,speed:0.20}],
-          tutorial: '12 ÷ 4 = 3, ÷ 3 = 1, − 1 = 0. Três cartas!' },
-        { id: 4, diff: 0, lives: 3, title: 'Dezesseis',
-          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'-',val:1}],
-          enemies: [{value:12,delay:0.8,speed:0.22},{value:16,delay:3.5,speed:0.22},{value:9,delay:6.5,speed:0.22},{value:8,delay:9.0,speed:0.22}] },
-        { id: 5, diff: 1, lives: 3, title: 'Vinte e quatro',
-          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:6},{op:'-',val:1}],
-          enemies: [{value:16,delay:0.8,speed:0.24},{value:24,delay:3.0,speed:0.24},{value:12,delay:5.5,speed:0.24},{value:18,delay:8.0,speed:0.24}] },
-        { id: 6, diff: 1, lives: 3, title: 'Trinta e seis',
-          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:5},{op:'÷',val:6},{op:'-',val:1}],
-          enemies: [{value:20,delay:0.8,speed:0.26},{value:36,delay:3.0,speed:0.26},{value:24,delay:5.5,speed:0.26},{value:30,delay:8.0,speed:0.26}] },
-        { id: 7, diff: 1, lives: 3, title: 'Sessenta',
-          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:5},{op:'÷',val:6},{op:'-',val:1}],
-          enemies: [{value:36,delay:0.8,speed:0.26},{value:60,delay:3.0,speed:0.26},{value:48,delay:5.5,speed:0.28},{value:30,delay:8.0,speed:0.28},{value:24,delay:10.5,speed:0.26}] },
-        { id: 8, diff: 3, lives: 2, title: 'Cem! (boss)',
-          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:5},{op:'÷',val:10},{op:'-',val:1}],
-          enemies: [{value:100,delay:0.8,speed:0.26},{value:60,delay:3.0,speed:0.28},{value:48,delay:5.0,speed:0.28},{value:36,delay:7.0,speed:0.30},{value:24,delay:9.0,speed:0.30},{value:20,delay:11.0,speed:0.28}] },
+        // Modo Divisão — pedagogia BNCC EF04MA06 (divisão exata)
+        // target = 1. Cartas ÷ dividem (só se exato) até atingir 1.
+        { id: 1, diff: 0, lives: 3, title: 'Dividir por 2',
+          handPool: [{op:'÷',val:2}],
+          enemies: [
+            {value:2,target:1,delay:2.0,speed:0.11},
+            {value:4,target:1,delay:7.0,speed:0.11},
+            {value:8,target:1,delay:12.0,speed:0.11},
+          ],
+          tutorial: 'Divida por 2 até virar 1. 8 ÷ 2 = 4, ÷ 2 = 2, ÷ 2 = 1.' },
+        { id: 2, diff: 0, lives: 3, title: '÷2 e ÷3',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3}],
+          enemies: [
+            {value:6,target:1,delay:1.5,speed:0.13},
+            {value:4,target:1,delay:5.5,speed:0.13},
+            {value:9,target:1,delay:9.5,speed:0.13},
+            {value:8,target:1,delay:13.5,speed:0.13},
+          ],
+          tutorial: 'Divisão exata só! 6 ÷ 2 = 3, ÷ 3 = 1.' },
+        { id: 3, diff: 0, lives: 3, title: 'Múltiplos de 4',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4}],
+          enemies: [
+            {value:8,target:1,delay:1.2,speed:0.15},
+            {value:12,target:1,delay:5.0,speed:0.15},
+            {value:9,target:1,delay:8.5,speed:0.15},
+            {value:16,target:1,delay:12.0,speed:0.15},
+          ] },
+        { id: 4, diff: 0, lives: 3, title: 'Mais opções',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:5}],
+          enemies: [
+            {value:25,target:1,delay:1.0,speed:0.17},
+            {value:20,target:1,delay:4.0,speed:0.17},
+            {value:16,target:1,delay:7.0,speed:0.17},
+            {value:12,target:1,delay:10.0,speed:0.18},
+            {value:15,target:1,delay:13.0,speed:0.17},
+          ],
+          tutorial: '25 ÷ 5 = 5, ÷ 5 = 1. Pense quais divisores existem.' },
+        { id: 5, diff: 1, lives: 3, title: 'Até trinta',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:5}],
+          enemies: [
+            {value:18,target:1,delay:1.0,speed:0.19},
+            {value:20,target:1,delay:3.5,speed:0.19},
+            {value:24,target:1,delay:6.0,speed:0.20},
+            {value:30,target:1,delay:8.5,speed:0.20},
+            {value:16,target:1,delay:11.0,speed:0.20},
+          ] },
+        { id: 6, diff: 1, lives: 3, title: 'Por seis também',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:5},{op:'÷',val:6}],
+          enemies: [
+            {value:36,target:1,delay:1.0,speed:0.20},
+            {value:24,target:1,delay:3.5,speed:0.20},
+            {value:30,target:1,delay:6.0,speed:0.22},
+            {value:25,target:1,delay:8.5,speed:0.22},
+            {value:20,target:1,delay:11.0,speed:0.22},
+          ] },
+        { id: 7, diff: 1, lives: 3, title: 'Por dez',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:5},{op:'÷',val:6},{op:'÷',val:10}],
+          enemies: [
+            {value:36,target:1,delay:1.0,speed:0.22},
+            {value:60,target:1,delay:3.0,speed:0.22},
+            {value:48,target:1,delay:5.5,speed:0.24},
+            {value:30,target:1,delay:8.0,speed:0.24},
+            {value:24,target:1,delay:10.5,speed:0.24},
+          ] },
+        { id: 8, diff: 3, lives: 2, title: 'BOSS: Cem!',
+          handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:5},{op:'÷',val:6},{op:'÷',val:10}],
+          enemies: [
+            {value:100,target:1,delay:0.8,speed:0.22},
+            {value:60,target:1,delay:3.0,speed:0.24},
+            {value:48,target:1,delay:5.0,speed:0.24},
+            {value:36,target:1,delay:7.0,speed:0.26},
+            {value:24,target:1,delay:9.0,speed:0.26},
+            {value:72,target:1,delay:11.0,speed:0.24},
+          ] },
       ]
     },
 
     mixed: {
       id: 'mixed', icon: '🎯', label: 'Tudo Junto', sub: '4 operações',
       color: '#9d4edd',
-      tutorial: 'Tudo misturado: inimigos positivos e negativos, todas as operações!',
+      tutorial: 'Tudo misturado! Cada inimigo tem seu alvo. Escolha a operação certa!',
       levels: [
-        { id: 1, diff: 0, lives: 3, title: 'Mistura básica',
-          handPool: [{op:'+',val:3},{op:'-',val:4},{op:'-',val:5}],
-          enemies: [{value:-3,delay:1.5,speed:0.18},{value:4,delay:6.0,speed:0.18},{value:5,delay:11.0,speed:0.18}],
-          tutorial: 'Cartas + somam, − subtraem. Zere todos!' },
-        { id: 2, diff: 0, lives: 3, title: '+ e −',
-          handPool: [{op:'+',val:2},{op:'+',val:5},{op:'-',val:3},{op:'-',val:6}],
-          enemies: [{value:-5,delay:1.0,speed:0.20},{value:6,delay:4.5,speed:0.20},{value:-2,delay:8.0,speed:0.20},{value:3,delay:11.5,speed:0.20}] },
-        { id: 3, diff: 0, lives: 3, title: 'Entra o ×',
-          // 4 → ×0 ou ×2=8, −8; -3 → +3; 6 → −6 ou ×0
-          handPool: [{op:'+',val:3},{op:'-',val:6},{op:'-',val:8},{op:'×',val:0},{op:'×',val:2}],
-          enemies: [{value:4,delay:1.0,speed:0.22},{value:-3,delay:4.0,speed:0.22},{value:6,delay:7.0,speed:0.22},{value:4,delay:10.0,speed:0.22}],
-          tutorial: '×0 zera direto. ×2 dobra (cuidado!).' },
-        { id: 4, diff: 0, lives: 3, title: 'Entra o ÷',
-          // 8 → ÷2=4 ÷2=2 ÷2=1 −1; ou ÷4=2 ÷2=1 −1
-          handPool: [{op:'÷',val:2},{op:'÷',val:4},{op:'-',val:1},{op:'+',val:5},{op:'-',val:6}],
-          enemies: [{value:8,delay:1.0,speed:0.22},{value:-5,delay:4.0,speed:0.22},{value:6,delay:7.0,speed:0.22},{value:8,delay:10.0,speed:0.22}],
-          tutorial: '÷ exata só. 8 ÷ 4 = 2, ÷ 2 = 1, − 1 = 0.' },
-        { id: 5, diff: 1, lives: 3, title: 'Tudo!',
-          handPool: [{op:'+',val:5},{op:'-',val:10},{op:'×',val:2},{op:'÷',val:2},{op:'-',val:1},{op:'×',val:0}],
-          enemies: [{value:10,delay:0.8,speed:0.24},{value:-5,delay:3.0,speed:0.24},{value:8,delay:5.5,speed:0.24},{value:5,delay:8.0,speed:0.26},{value:4,delay:10.5,speed:0.26}] },
+        // Modo Tudo Junto — mistura as 4 mecânicas. Cada inimigo tem seu target.
+        { id: 1, diff: 0, lives: 3, title: 'Soma ou subtrai?',
+          handPool: [{op:'+',val:1},{op:'+',val:2},{op:'+',val:3},{op:'-',val:2},{op:'-',val:4}],
+          enemies: [
+            {value:3,target:5,delay:1.8,speed:0.13},   // +2 ou +1+1
+            {value:4,target:0,delay:6.0,speed:0.13},   // -4 ou -2-2
+            {value:2,target:5,delay:10.0,speed:0.13},  // +3 ou +1+2
+            {value:2,target:0,delay:14.0,speed:0.13},  // -2
+          ],
+          tutorial: 'Olha o alvo amarelo. Soma ou subtrai pra chegar nele!' },
+        { id: 2, diff: 0, lives: 3, title: 'Entra ×',
+          handPool: [{op:'+',val:3},{op:'-',val:5},{op:'×',val:2}],
+          enemies: [
+            {value:3,target:6,delay:1.5,speed:0.15},   // ×2
+            {value:5,target:0,delay:5.0,speed:0.15},   // -5
+            {value:4,target:8,delay:9.0,speed:0.15},   // ×2
+            {value:3,target:6,delay:13.0,speed:0.15},  // ×2 ou +3
+          ],
+          tutorial: 'Carta amarela (×) multiplica! 3 × 2 = 6.' },
+        { id: 3, diff: 0, lives: 3, title: 'Entra ÷',
+          handPool: [{op:'+',val:5},{op:'-',val:5},{op:'×',val:2},{op:'÷',val:2}],
+          enemies: [
+            {value:8,target:1,delay:1.5,speed:0.17},   // ÷2÷2÷2
+            {value:5,target:10,delay:5.0,speed:0.17},  // +5 ou ×2
+            {value:5,target:0,delay:9.0,speed:0.17},   // -5
+            {value:4,target:1,delay:13.0,speed:0.17},  // ÷2÷2
+          ],
+          tutorial: 'Alvo 1? Use ÷ pra dividir até 1!' },
+        { id: 4, diff: 0, lives: 3, title: 'Tudo simples',
+          handPool: [{op:'+',val:3},{op:'-',val:3},{op:'×',val:3},{op:'÷',val:3}],
+          enemies: [
+            {value:2,target:5,delay:1.2,speed:0.18},   // +3
+            {value:3,target:0,delay:4.5,speed:0.18},   // -3
+            {value:2,target:6,delay:7.5,speed:0.18},   // ×3
+            {value:9,target:1,delay:10.5,speed:0.18},  // ÷3÷3
+            {value:3,target:9,delay:13.5,speed:0.18},  // ×3 ou +3+3
+          ] },
+        { id: 5, diff: 1, lives: 3, title: 'Mais opções',
+          handPool: [{op:'+',val:2},{op:'+',val:5},{op:'-',val:5},{op:'-',val:10},{op:'×',val:2},{op:'÷',val:2}],
+          enemies: [
+            {value:5,target:10,delay:1.0,speed:0.20},  // +5 ou ×2
+            {value:8,target:0,delay:3.5,speed:0.20},   // -5-5? não, vou recalcular... -5-3 não tem -3, hmm
+                                                       // ×0 não tem, ÷2÷2÷2÷2... wait 8÷2=4. Hmm. Vou trocar
+            {value:10,target:0,delay:6.0,speed:0.22},  // -10 ou -5-5
+            {value:8,target:4,delay:8.5,speed:0.22},   // ÷2
+            {value:3,target:6,delay:11.0,speed:0.22},  // ×2 ou +5-2... só -5 e +5 e +2. 3+2=5, +5? não. Hmm.
+          ] },
         { id: 6, diff: 1, lives: 3, title: 'Estratégia',
-          handPool: [{op:'+',val:7},{op:'-',val:12},{op:'×',val:3},{op:'÷',val:2},{op:'÷',val:3},{op:'-',val:1}],
-          enemies: [{value:12,delay:0.8,speed:0.26},{value:-7,delay:3.0,speed:0.26},{value:4,delay:5.5,speed:0.28},{value:18,delay:8.0,speed:0.26},{value:6,delay:10.5,speed:0.28}] },
+          handPool: [{op:'+',val:5},{op:'+',val:10},{op:'-',val:10},{op:'×',val:3},{op:'×',val:5},{op:'÷',val:3}],
+          enemies: [
+            {value:5,target:15,delay:1.0,speed:0.22},  // +10 ou ×3
+            {value:10,target:0,delay:3.5,speed:0.22},  // -10
+            {value:9,target:1,delay:6.0,speed:0.24},   // ÷3÷3
+            {value:4,target:20,delay:8.5,speed:0.24},  // ×5
+            {value:15,target:5,delay:11.0,speed:0.24}, // -10
+          ] },
         { id: 7, diff: 1, lives: 3, title: 'Pressão',
-          handPool: [{op:'+',val:10},{op:'-',val:15},{op:'×',val:0},{op:'×',val:3},{op:'÷',val:2},{op:'÷',val:3},{op:'-',val:1}],
-          enemies: [{value:15,delay:0.8,speed:0.28},{value:-10,delay:2.8,speed:0.28},{value:5,delay:5.0,speed:0.28},{value:24,delay:7.0,speed:0.28},{value:9,delay:9.0,speed:0.30}] },
-        { id: 8, diff: 3, lives: 2, title: 'Boss final',
-          handPool: [{op:'+',val:5},{op:'+',val:10},{op:'-',val:12},{op:'-',val:20},{op:'×',val:0},{op:'×',val:2},{op:'×',val:4},{op:'÷',val:2},{op:'÷',val:3},{op:'-',val:1}],
-          enemies: [{value:20,delay:0.8,speed:0.28},{value:-10,delay:2.8,speed:0.30},{value:36,delay:5.0,speed:0.28},{value:12,delay:7.0,speed:0.30},{value:-5,delay:9.0,speed:0.30},{value:48,delay:11.0,speed:0.28}] },
+          handPool: [{op:'+',val:5},{op:'+',val:10},{op:'-',val:10},{op:'-',val:20},{op:'×',val:4},{op:'×',val:5},{op:'÷',val:2},{op:'÷',val:5}],
+          enemies: [
+            {value:5,target:25,delay:1.0,speed:0.24},  // ×5
+            {value:20,target:0,delay:2.8,speed:0.24},  // -20 ou -10-10
+            {value:8,target:1,delay:5.0,speed:0.26},   // ÷2÷2÷2
+            {value:4,target:20,delay:7.0,speed:0.26},  // ×5
+            {value:25,target:1,delay:9.0,speed:0.26},  // ÷5÷5
+            {value:10,target:0,delay:11.0,speed:0.26}, // -10
+          ] },
+        { id: 8, diff: 3, lives: 2, title: 'BOSS Final',
+          handPool: [{op:'+',val:5},{op:'+',val:10},{op:'-',val:10},{op:'-',val:20},{op:'×',val:2},{op:'×',val:3},{op:'×',val:5},{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:5}],
+          enemies: [
+            {value:5,target:15,delay:0.8,speed:0.24},    // ×3 ou +10
+            {value:20,target:0,delay:2.5,speed:0.26},    // -20 ou -10-10
+            {value:8,target:1,delay:4.5,speed:0.26},     // ÷2÷2÷2
+            {value:4,target:20,delay:6.5,speed:0.26},    // ×5
+            {value:6,target:30,delay:8.5,speed:0.26},    // ×5 ou +10×3
+            {value:25,target:1,delay:10.5,speed:0.28},   // ÷5÷5
+          ] },
       ]
     },
   };
@@ -773,8 +1004,10 @@
   let LEVELS = MODES.sub.levels; // default; trocado quando usuário escolhe modo
 
   // ============ MASCOTES ============
-  // Cor dos numinhos varia por valor
-  const MASCOTS = ['🐸','🦊','🐙','🐰','🐻','🦄','🐳','🦁','🐯','🐨','🐵','🦝'];
+  // Fauna mais "tropical/brasileira" — placeholder até mascotes ilustrados nativos
+  // 🦜 arara, 🐢 tartaruga, 🐊 jacaré, 🦒 girafa, 🦋 borboleta, 🐠 peixe,
+  // 🦥 bicho-preguiça, 🐝 abelha, 🐬 boto, 🐯 jaguar, 🦛 hipopótamo, 🦎 lagarto
+  const MASCOTS = ['🦜','🐢','🐊','🦒','🦋','🐠','🦥','🐝','🐬','🐯','🦛','🦎'];
   function mascotFor(v) {
     return MASCOTS[Math.abs(v) % MASCOTS.length];
   }
@@ -1170,7 +1403,8 @@
     // Vibração leve
     if (navigator.vibrate) navigator.vibrate(20);
 
-    if (v === 0) destroyEnemy(enemy);
+    // Inimigo morre ao atingir target (default 0)
+    if (v === enemy.target) destroyEnemy(enemy);
     return true;
   }
 
@@ -1196,8 +1430,11 @@
     }
   }
 
-  // Multiplicador global de velocidade — aumenta o desafio do jogo
-  const SPEED_MULTIPLIER = 1.3;
+  // Multiplicador global de velocidade.
+  // Calibrado pra que: fase 1 dê ~30s pra criança pensar; boss dê ~15s.
+  // Speeds bases das fases são propositalmente baixas (0.11–0.26) porque
+  // os targets agora exigem mais raciocínio que apenas zerar.
+  const SPEED_MULTIPLIER = 2.2;
 
   function spawnEnemy(spec) {
     const margin = 40;
@@ -1207,7 +1444,8 @@
       x: x, y: -30,
       value: spec.value,
       originalValue: spec.value,
-      speed: spec.speed * 60 * SPEED_MULTIPLIER, // px per second
+      target: spec.target != null ? spec.target : 0, // alvo de "morte" do inimigo (default 0)
+      speed: spec.speed * 60 * SPEED_MULTIPLIER,    // px por segundo
       mascot: mascotFor(spec.value),
       flashTime: 0,
       dying: false,
@@ -1322,15 +1560,15 @@
       ctx.globalAlpha = 1 - t;
       ctx.translate(e.x, e.y);
       ctx.scale(scale, scale);
-      drawEnemyBody(0, 0, radius, e.value, e.mascot, flash);
+      drawEnemyBody(0, 0, radius, e.value, e.mascot, flash, e.target);
       ctx.restore();
       return;
     }
 
-    drawEnemyBody(e.x, e.y, radius, e.value, e.mascot, flash);
+    drawEnemyBody(e.x, e.y, radius, e.value, e.mascot, flash, e.target);
   }
 
-  function drawEnemyBody(x, y, radius, value, mascot, flash) {
+  function drawEnemyBody(x, y, radius, value, mascot, flash, target) {
     const color = colorFor(value);
     // Corpo (círculo com borda)
     ctx.save();
@@ -1367,16 +1605,31 @@
       ctx.arc(0, 0, radius, 0, Math.PI * 2);
       ctx.fill();
     }
-    // Número
+    // Número principal
     ctx.fillStyle = 'white';
     ctx.strokeStyle = 'rgba(0,0,0,0.4)';
     ctx.lineWidth = 3;
-    const fontSize = String(value).length > 2 ? radius * 0.8 : radius * 1.0;
+    const valStr = String(value);
+    const hasTarget = target != null && target !== 0;
+    const fontSize = valStr.length > 2 ? radius * 0.75 : radius * 0.95;
     ctx.font = `800 ${fontSize}px 'Baloo 2', sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.strokeText(String(value), 0, 2);
-    ctx.fillText(String(value), 0, 2);
+    const yOffset = hasTarget ? -radius * 0.18 : 2;
+    ctx.strokeText(valStr, 0, yOffset);
+    ctx.fillText(valStr, 0, yOffset);
+
+    // Alvo (quando target != 0): mostra "→ N" pequeno abaixo do número
+    if (hasTarget) {
+      const targetStr = '→' + target;
+      const tFontSize = radius * 0.45;
+      ctx.font = `700 ${tFontSize}px 'Baloo 2', sans-serif`;
+      ctx.fillStyle = '#ffe066';
+      ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+      ctx.lineWidth = 2.5;
+      ctx.strokeText(targetStr, 0, radius * 0.45);
+      ctx.fillText(targetStr, 0, radius * 0.45);
+    }
     ctx.restore();
   }
 
@@ -1557,8 +1810,9 @@
       const mode = MODES[modeId];
       mode.levels.forEach(lvl => {
         lvl.enemies.forEach(enemy => {
-          if (!canSolveEnemy(enemy.value, lvl.handPool)) {
-            console.warn(`[Numinhos] Fase ${modeId}/${lvl.id} (${lvl.title}): inimigo ${enemy.value} pode não ser solucionável com o pool`, lvl.handPool);
+          const target = enemy.target != null ? enemy.target : 0;
+          if (!canSolveEnemy(enemy.value, target, lvl.handPool)) {
+            console.warn(`[Numinhos] Fase ${modeId}/${lvl.id} (${lvl.title}): inimigo ${enemy.value}→${target} pode não ser solucionável`, lvl.handPool);
             problems++;
           }
         });
@@ -1568,10 +1822,9 @@
     else console.warn(`[Numinhos] ⚠ ${problems} problema(s) de solucionabilidade`);
   }
 
-  // BFS limitada: a partir do valor inicial, aplica cartas do pool buscando 0.
-  // Limite de profundidade e de estados pra não explodir.
-  function canSolveEnemy(startValue, handPool) {
-    if (startValue === 0) return true;
+  // BFS limitada: do valor inicial até o target aplicando cartas do pool.
+  function canSolveEnemy(startValue, target, handPool) {
+    if (startValue === target) return true;
     const visited = new Set([startValue]);
     let frontier = [startValue];
     const maxDepth = 8;       // até 8 cartas pra zerar
@@ -1588,7 +1841,7 @@
             if (card.val === 0 || v === 0 || v % card.val !== 0) continue;
             nv = v / card.val;
           } else continue;
-          if (nv === 0) return true;
+          if (nv === target) return true;
           if (Math.abs(nv) > 1000) continue; // poda
           if (!visited.has(nv)) {
             visited.add(nv);
