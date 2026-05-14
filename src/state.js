@@ -23,8 +23,8 @@ export const state = {
 };
 
 // Configuração global — calibrado pra jogo desafiador mas justo pra criança.
-// Fase 1 dá ~30s pra pensar; boss ~15s.
-export const SPEED_MULTIPLIER = 2.2;
+// Velocidade subida pra 3.0 (era 2.2) — fase 1 ~22s até linha, boss ~10s.
+export const SPEED_MULTIPLIER = 3.0;
 
 // Tamanho da mão de cartas em qualquer momento.
 export const HAND_SIZE = 4;
