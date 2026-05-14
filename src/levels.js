@@ -179,43 +179,63 @@ export const MODES = {
     mentor: MENTORS.boto,
     tutorial: 'O Boto faz mágica! Multiplique pra chegar no alvo da tabuada.',
     levels: [
-      { id: 1, diff: 0, lives: 3, title: 'Dobro (×2)',
+      { id: 1, diff: 0, lives: 3, title: 'Tabuada do 2 inteira',
+        // Toda a tabuada do 2 numa fase só — 1×2 até 8×2.
+        // Pool só ×2; variedade vem dos 8 inimigos diferentes.
         handPool: [{op:'×',val:2}],
         enemies: [
-          {value:2,target:4,delay:2.0,speed:0.11},
-          {value:3,target:6,delay:7.0,speed:0.11},
-          {value:4,target:8,delay:12.0,speed:0.11},
-          {value:5,target:10,delay:17.0,speed:0.11},
+          {value:1,target:2,delay:2.0,speed:0.11},
+          {value:2,target:4,delay:5.5,speed:0.11},
+          {value:3,target:6,delay:9.0,speed:0.11},
+          {value:4,target:8,delay:12.5,speed:0.12},
+          {value:5,target:10,delay:16.0,speed:0.12},
+          {value:6,target:12,delay:19.5,speed:0.12},
+          {value:7,target:14,delay:23.0,speed:0.12},
+          {value:8,target:16,delay:26.5,speed:0.13},
         ],
-        tutorial: 'Multiplique por 2 pra chegar no alvo! 2×2=4, 3×2=6...' },
-      { id: 2, diff: 0, lives: 3, title: '×2 e ×3',
-        handPool: [{op:'×',val:2},{op:'×',val:3}],
+        tutorial: 'Multiplique por 2 pra chegar no alvo! 1×2=2, 2×2=4, 3×2=6...' },
+      { id: 2, diff: 0, lives: 3, title: 'Tabuada do 3 inteira',
+        // Toda a tabuada do 3. Pool só ×3; 8 inimigos.
+        handPool: [{op:'×',val:3}],
         enemies: [
-          {value:2,target:4,delay:1.5,speed:0.13},
-          {value:3,target:9,delay:5.5,speed:0.13},
-          {value:4,target:12,delay:9.5,speed:0.13},
-          {value:2,target:6,delay:13.5,speed:0.13},
-          {value:3,target:6,delay:17.5,speed:0.13},
+          {value:1,target:3,delay:1.8,speed:0.12},
+          {value:2,target:6,delay:5.0,speed:0.12},
+          {value:3,target:9,delay:8.5,speed:0.13},
+          {value:4,target:12,delay:12.0,speed:0.13},
+          {value:5,target:15,delay:15.5,speed:0.13},
+          {value:6,target:18,delay:19.0,speed:0.14},
+          {value:7,target:21,delay:22.5,speed:0.14},
+          {value:8,target:24,delay:26.0,speed:0.14},
         ],
-        tutorial: 'Escolha entre ×2 e ×3 pra acertar o alvo.' },
-      { id: 3, diff: 0, lives: 3, title: 'Tabuada do 4',
+        tutorial: 'Agora a tabuada do 3! 4×3=12, 5×3=15...' },
+      { id: 3, diff: 0, lives: 3, title: 'Tabuada do 4 inteira',
+        // Toda tabuada do 4. Pool ×4 + ×3 como ruído (criança escolhe certa).
         handPool: [{op:'×',val:4},{op:'×',val:3}],
         enemies: [
-          {value:2,target:8,delay:1.2,speed:0.15},
-          {value:3,target:12,delay:5.0,speed:0.15},
-          {value:4,target:16,delay:8.5,speed:0.15},
-          {value:5,target:20,delay:12.0,speed:0.15},
+          {value:1,target:4,delay:1.8,speed:0.13},
+          {value:2,target:8,delay:5.0,speed:0.14},
+          {value:3,target:12,delay:8.5,speed:0.14},
+          {value:4,target:16,delay:12.0,speed:0.15},
+          {value:5,target:20,delay:15.5,speed:0.15},
+          {value:6,target:24,delay:19.0,speed:0.15},
+          {value:7,target:28,delay:22.5,speed:0.15},
+          {value:8,target:32,delay:26.0,speed:0.16},
         ],
-        tutorial: 'Tabuada do 4: 2×4=8, 3×4=12. Cuidado com a ×3!' },
-      { id: 4, diff: 0, lives: 3, title: 'Tabuada do 5',
+        tutorial: 'Tabuada do 4: 2×4=8, 6×4=24. Cuidado pra não pegar a ×3!' },
+      { id: 4, diff: 0, lives: 3, title: 'Tabuada do 5 inteira',
+        // Toda tabuada do 5. Pool ×5 + ×4 ruído.
         handPool: [{op:'×',val:5},{op:'×',val:4}],
         enemies: [
-          {value:2,target:10,delay:1.0,speed:0.17},
-          {value:3,target:15,delay:4.5,speed:0.17},
-          {value:4,target:20,delay:8.0,speed:0.17},
-          {value:5,target:25,delay:11.5,speed:0.17},
-          {value:6,target:30,delay:14.5,speed:0.17},
-        ] },
+          {value:1,target:5,delay:1.5,speed:0.14},
+          {value:2,target:10,delay:4.5,speed:0.15},
+          {value:3,target:15,delay:7.5,speed:0.15},
+          {value:4,target:20,delay:10.5,speed:0.16},
+          {value:5,target:25,delay:13.5,speed:0.16},
+          {value:6,target:30,delay:16.5,speed:0.16},
+          {value:7,target:35,delay:19.5,speed:0.17},
+          {value:8,target:40,delay:22.5,speed:0.17},
+        ],
+        tutorial: 'Tabuada do 5: termina em 0 ou 5!' },
       { id: 5, diff: 1, lives: 3, title: 'Tabuada do 10',
         handPool: [{op:'×',val:10},{op:'×',val:5}],
         enemies: [
@@ -263,23 +283,31 @@ export const MODES = {
     mentor: MENTORS.mira,
     tutorial: 'A Mira ensina a repartir. Divida o Numinho até virar 1!',
     levels: [
-      { id: 1, diff: 0, lives: 3, title: 'Dividir por 2',
+      { id: 1, diff: 0, lives: 3, title: 'Potências de 2',
+        // Pool ÷2 só. Potências de 2: cada inimigo precisa de número diferente
+        // de divisões pra chegar em 1.  2→1 (1 carta), 4→1 (2), 8→1 (3), 16→1 (4), 32→1 (5).
         handPool: [{op:'÷',val:2}],
         enemies: [
-          {value:2,target:1,delay:2.0,speed:0.11},
-          {value:4,target:1,delay:7.0,speed:0.11},
-          {value:8,target:1,delay:12.0,speed:0.11},
+          {value:2,target:1,delay:2.0,speed:0.11},   // ÷2 = 1 (1 carta)
+          {value:4,target:1,delay:5.5,speed:0.11},   // ÷2÷2 (2 cartas)
+          {value:8,target:1,delay:9.5,speed:0.11},   // 3 cartas
+          {value:16,target:1,delay:14.0,speed:0.12}, // 4 cartas
+          {value:32,target:1,delay:19.0,speed:0.12}, // 5 cartas
         ],
-        tutorial: 'Divida por 2 até virar 1. 8 ÷ 2 = 4, ÷ 2 = 2, ÷ 2 = 1.' },
-      { id: 2, diff: 0, lives: 3, title: '÷2 e ÷3',
-        handPool: [{op:'÷',val:2},{op:'÷',val:3}],
+        tutorial: 'Divida por 2 até virar 1! 8 ÷ 2 = 4, ÷ 2 = 2, ÷ 2 = 1.' },
+      { id: 2, diff: 0, lives: 3, title: 'Tabuada do 3 (inverso)',
+        // Pool ÷3. Mostra a tabuada do 3 ao contrário: 27→9→3→1, 9→3→1, 3→1.
+        // Inclui ÷2 ruído pra criança aprender quando NÃO usar.
+        handPool: [{op:'÷',val:3},{op:'÷',val:2}],
         enemies: [
-          {value:6,target:1,delay:1.5,speed:0.13},
-          {value:4,target:1,delay:5.5,speed:0.13},
-          {value:9,target:1,delay:9.5,speed:0.13},
-          {value:8,target:1,delay:13.5,speed:0.13},
+          {value:3,target:1,delay:1.5,speed:0.12},    // ÷3=1
+          {value:9,target:1,delay:5.0,speed:0.13},    // ÷3÷3
+          {value:6,target:1,delay:9.0,speed:0.13},    // ÷3 ÷2 ou ÷2 ÷3
+          {value:27,target:1,delay:13.0,speed:0.13},  // ÷3 ÷3 ÷3
+          {value:12,target:1,delay:17.0,speed:0.14},  // ÷3 ÷2 ÷2 ou ÷2 ÷2 ÷3
+          {value:18,target:1,delay:21.0,speed:0.14},  // ÷3 ÷3 ÷2 ou ÷2 ÷3 ÷3
         ],
-        tutorial: 'Divisão exata só! 6 ÷ 2 = 3, ÷ 3 = 1.' },
+        tutorial: 'Agora ÷3 entra! 27 ÷ 3 = 9, ÷ 3 = 3, ÷ 3 = 1. ÷2 às vezes ajuda.' },
       { id: 3, diff: 0, lives: 3, title: 'Múltiplos de 4',
         handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4}],
         enemies: [
