@@ -142,9 +142,11 @@ export function updateHUD() {
   document.getElementById('scoreLabel').textContent = state.score;
 }
 
-// Tutorial não some automaticamente — só com clique no "Entendi".
-// Decisão pós-feedback da usuária: criança não conseguia ler antes do tutorial sumir.
+// Tutorial PAUSA O JOGO até o clique em "Entendi" ou primeira ação.
+// Sem isso, Numinhos descem enquanto criança lê e a fase é perdida sem chance.
 let activeTutorial = null;
+let pausedByTutorial = false;
+
 function showTutorial(text) {
   dismissTutorial();
   const el = document.createElement('div');
@@ -154,9 +156,13 @@ function showTutorial(text) {
     <button class="tutorial-ok">Entendi 👍</button>
   `;
   el.style.top = '38%'; el.style.left = '50%';
-  el.style.transform = 'translate(-50%, -50%)';
   document.body.appendChild(el);
   activeTutorial = el;
+  // PAUSA o jogo. O game loop chega no `if (state.gameRunning)` e pula tudo.
+  if (state.gameRunning) {
+    state.gameRunning = false;
+    pausedByTutorial = true;
+  }
   el.querySelector('.tutorial-ok').addEventListener('click', dismissTutorial);
 }
 
@@ -168,10 +174,15 @@ function dismissTutorial() {
   el.style.opacity = '0';
   el.style.transform = 'translate(-50%, -50%) scale(0.8)';
   setTimeout(() => el.remove(), 300);
+  // RETOMA o jogo, resetando o timer pro spawn não considerar o tempo pausado
+  if (pausedByTutorial) {
+    pausedByTutorial = false;
+    state.levelStartTime = performance.now();
+    state.gameRunning = true;
+  }
 }
 
 // Fecha tutorial automaticamente quando jogador interage com a primeira carta.
-// Chamado pelo bindCardDrag onStart.
 export function notifyTutorialOfAction() {
   dismissTutorial();
 }
