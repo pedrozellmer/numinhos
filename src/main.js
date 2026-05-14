@@ -7,7 +7,7 @@ import { maybeSpawnEnemies, updateParticles, enemyEscaped } from './engine.js';
 import { initCanvas, resize, draw, getDims } from './render.js';
 import {
   loadProgress, renderModeSelect, renderSplashMascots,
-  bindNavigation, updateHUD, winLevel, loseLevel, flashMsg
+  bindNavigation, updateHUD, winLevel, loseLevel, flashMsg, ensureHandPlayable
 } from './ui.js';
 import { APP_VERSION } from './version.js';
 
@@ -72,6 +72,9 @@ function loop(now) {
     const { W, H } = getDims();
     const elapsed = (now - state.levelStartTime) / 1000;
     maybeSpawnEnemies(elapsed, W);
+    // Garante toda frame que a mão tem ao menos uma jogada possível.
+    // Barato: early-exit imediato quando a mão já resolve alguém.
+    ensureHandPlayable();
 
     for (let i = state.enemies.length - 1; i >= 0; i--) {
       const e = state.enemies[i];

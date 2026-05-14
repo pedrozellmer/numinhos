@@ -84,23 +84,26 @@ export function showInvalidFeedback(enemy, reason) {
 //   3. DIVERSIFICA: se tudo coberto, escolhe carta menos repetida no pool
 //   4. FALLBACK: heurística "aproxima target" (não deveria chegar aqui)
 
-export function pickSmartCard(lvl) {
-  const alive = state.enemies.filter(e => !e.dying);
-  const handCards = state.cards.map(c => ({ op: c.op, val: c.val }));
+// Versão PURA — recebe tudo como argumento, não toca em `state`.
+// Testável isoladamente. O wrapper pickSmartCard injeta o state real.
+//
+//   lvl            — definição da fase (handPool, enemies)
+//   handCards      — [{op, val}] cartas atualmente na mão
+//   aliveEnemies   — [{value, target, y}] inimigos vivos na tela
+//   enemiesSpawned — quantos já spawnaram (índice do próximo)
+export function pickSmartCardPure(lvl, handCards, aliveEnemies, enemiesSpawned) {
+  const alive = aliveEnemies;
 
   // === PASSO 1: CONSERTA inimigos vivos sem solução com mão atual ===
   const unsolvableAlive = alive.filter(e =>
     !canSolveWithCards(e.value, e.target, handCards)
   );
   if (unsolvableAlive.length > 0) {
-    // Sort: mais urgente primeiro (maior y = mais perto da linha)
-    unsolvableAlive.sort((a, b) => b.y - a.y);
-    // Pra cada carta no pool, ver QUANTOS unsolvables ela conserta
+    unsolvableAlive.sort((a, b) => (b.y || 0) - (a.y || 0));
     const fixers = lvl.handPool.map(proto => {
       const fixedCount = unsolvableAlive.filter(e =>
         canSolveWithCards(e.value, e.target, [...handCards, proto])
       ).length;
-      // Bônus: carta que zera SOZINHA o mais urgente (1-passo)
       const oneStepFix = applyOpDry(proto, unsolvableAlive[0].value, unsolvableAlive[0].target)
                         === unsolvableAlive[0].target ? 10 : 0;
       const dupCount = handCards.filter(c => c.op === proto.op && c.val === proto.val).length;
@@ -108,21 +111,20 @@ export function pickSmartCard(lvl) {
     });
     fixers.sort((a, b) => b.score - a.score || Math.random() - 0.5);
     if (fixers[0].score > 0) return fixers[0].proto;
-    // Se nenhuma carta conserta, é problema do design da fase — log e fallback
-    console.warn('[Numinhos] INVARIANTE QUEBRADA: nenhuma carta no pool conserta inimigos vivos',
+    console.warn('[Numinhos] INVARIANTE QUEBRADA: nenhuma carta conserta inimigos vivos',
       { unsolvableAlive: unsolvableAlive.map(e => ({v:e.value, t:e.target})),
         hand: handCards, pool: lvl.handPool });
   }
 
   // === PASSO 2: PREPARA — considera próximos spawns ===
   const upcoming = lvl.enemies
-    .slice(state.enemiesSpawned, state.enemiesSpawned + 3)
+    .slice(enemiesSpawned, enemiesSpawned + 3)
     .map(spec => ({
       value: spec.value,
       target: spec.target != null ? spec.target : 0,
     }));
   const targets = [
-    ...alive.slice().sort((a, b) => b.y - a.y).slice(0, 3),
+    ...alive.slice().sort((a, b) => (b.y || 0) - (a.y || 0)).slice(0, 3),
     ...upcoming
   ];
 
@@ -132,7 +134,7 @@ export function pickSmartCard(lvl) {
   const scored = lvl.handPool.map(proto => {
     let bestScore = 0;
     for (const t of targets) {
-      const weight = alive.includes(t) ? 100 : 60; // vivo > upcoming
+      const weight = alive.includes(t) ? 100 : 60;
       const after = applyOpDry(proto, t.value, t.target);
       if (after === t.target) { bestScore = Math.max(bestScore, weight); continue; }
       if (canSolveWithCards(t.value, t.target, [...handCards, proto])) {
@@ -145,7 +147,6 @@ export function pickSmartCard(lvl) {
         if (dA < dB) bestScore = Math.max(bestScore, 5 + (dB - dA));
       }
     }
-    // Diversidade: penaliza cartas já repetidas
     const dupCount = handCards.filter(c => c.op === proto.op && c.val === proto.val).length;
     bestScore -= dupCount * 12;
     return { proto, score: bestScore };
@@ -155,8 +156,62 @@ export function pickSmartCard(lvl) {
   return scored[0].proto;
 }
 
+// Wrapper que injeta o state real do jogo.
+export function pickSmartCard(lvl) {
+  const alive = state.enemies.filter(e => !e.dying);
+  const handCards = state.cards.map(c => ({ op: c.op, val: c.val }));
+  return pickSmartCardPure(lvl, handCards, alive, state.enemiesSpawned);
+}
+
 function randomFromPool(pool) {
   return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// =========== GARANTIA FINAL: findHandFix ===========
+// Em fases complexas o jogador pode gastar cartas "erradas" e ficar com uma
+// mão que não resolve NENHUM inimigo vivo. Este é o último escudo.
+//
+// findHandFix retorna {discardIdx, newProto} — UMA troca que faz PROGRESSO
+// em direção à solução do inimigo mais urgente. Chamada iterativamente
+// (loop), converge: cada chamada adiciona uma carta da solução BFS e
+// descarta uma carta sem utilidade. Pura.
+export function findHandFix(lvl, handCards, alive) {
+  if (alive.length === 0) return null;
+  // Mão já resolve alguém? Tudo certo.
+  if (alive.some(e => canSolveWithCards(e.value, e.target, handCards))) return null;
+
+  // Foca no inimigo mais urgente (maior y = mais perto da linha)
+  const urgent = alive.slice().sort((a, b) => (b.y || 0) - (a.y || 0))[0];
+
+  // Solução ótima pro urgente — sequência de cartas do pool (BFS)
+  const solution = findShortestSolution(urgent.value, urgent.target, lvl.handPool);
+  if (solution.length === 0) return null; // fase sem solução (não deveria)
+
+  // Quais cartas da solução AINDA FALTAM na mão (considerando contagem)?
+  const handCopy = handCards.slice();
+  const missing = [];
+  for (const card of solution) {
+    const idx = handCopy.findIndex(h => h.op === card.op && h.val === card.val);
+    if (idx >= 0) handCopy.splice(idx, 1);
+    else missing.push(card);
+  }
+  if (missing.length === 0) return null; // mão já contém a solução inteira
+
+  // Conta quantas de cada carta a solução precisa
+  const need = {};
+  for (const c of solution) {
+    const k = c.op + c.val;
+    need[k] = (need[k] || 0) + 1;
+  }
+  // Descarta uma carta da mão que tem "sobra" (mais cópias do que a solução usa)
+  let discardIdx = 0;
+  for (let i = 0; i < handCards.length; i++) {
+    const k = handCards[i].op + handCards[i].val;
+    const handHas = handCards.filter(h => h.op + h.val === k).length;
+    if (handHas > (need[k] || 0)) { discardIdx = i; break; }
+  }
+
+  return { discardIdx, newProto: missing[0] };
 }
 
 // =========== MÃO INICIAL OTIMIZADA ===========

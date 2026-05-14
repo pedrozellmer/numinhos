@@ -3,7 +3,7 @@
 
 import { state, HAND_SIZE, getLevels, setLevels } from './state.js';
 import { MODES, MODE_ORDER } from './levels.js';
-import { applyOp, pickSmartCard, buildOptimalInitialHand, showInvalidFeedback } from './engine.js';
+import { applyOp, pickSmartCard, buildOptimalInitialHand, findHandFix, showInvalidFeedback } from './engine.js';
 import { getDims, getCanvas, resize } from './render.js';
 import { soundMenuClick, soundWinLevel, soundLoseLevel, initAudio } from './audio.js';
 
@@ -237,6 +237,25 @@ function cardClass(op) {
   return op === '+' ? 'add' : op === '-' ? 'sub' : op === '×' ? 'mul' : 'div';
 }
 
+// GARANTIA FINAL: se a mão não resolve NENHUM inimigo vivo, troca a carta
+// inútil automaticamente. Chamada após cada spawn no game loop.
+// A criança vê a carta velha sumir e a nova entrar destacada.
+export function ensureHandPlayable() {
+  let safety = 6;
+  while (safety-- > 0) {
+    const alive = state.enemies.filter(e => !e.dying);
+    const handCards = state.cards.map(c => ({ op: c.op, val: c.val }));
+    const fix = findHandFix(state.currentLevel, handCards, alive);
+    if (!fix) return; // mão já joga em alguém — nada a fazer
+    // Aplica a troca: descarta a carta inútil, traz a que conserta
+    const oldCard = state.cards[fix.discardIdx];
+    if (oldCard) removeCard(oldCard);
+    const newCard = { id: state.nextCardId++, op: fix.newProto.op, val: fix.newProto.val };
+    state.cards.push(newCard);
+    addCardToDOM(newCard);
+  }
+}
+
 function removeCard(card) {
   state.cards = state.cards.filter(c => c.id !== card.id);
   const el = document.querySelector(`.card[data-id="${card.id}"]`);
@@ -419,9 +438,42 @@ export function goToLevelMenu() {
   document.getElementById('menuScreen').classList.add('show');
 }
 
+// Confirmação de saída — pausa o jogo enquanto a criança decide.
+// Evita perder uma fase por toque acidental no botão voltar.
+let pausedByExitConfirm = false;
+function requestExit() {
+  soundMenuClick();
+  if (state.gameRunning) {
+    // Jogo em andamento: pausa e pede confirmação
+    state.gameRunning = false;
+    pausedByExitConfirm = true;
+    document.getElementById('confirmExitScreen').classList.add('show');
+  } else {
+    // Não está jogando (ex: tela de vitória/derrota): sai direto
+    goToLevelMenu();
+  }
+}
+function cancelExit() {
+  soundMenuClick();
+  document.getElementById('confirmExitScreen').classList.remove('show');
+  if (pausedByExitConfirm) {
+    pausedByExitConfirm = false;
+    state.levelStartTime = performance.now(); // reseta timer pro spawn não pular
+    state.gameRunning = true;
+  }
+}
+function confirmExit() {
+  soundMenuClick();
+  pausedByExitConfirm = false;
+  document.getElementById('confirmExitScreen').classList.remove('show');
+  goToLevelMenu();
+}
+
 // =========== EVENT BINDINGS ===========
 export function bindNavigation() {
-  document.getElementById('backBtn').onclick = () => { soundMenuClick(); goToLevelMenu(); };
+  document.getElementById('backBtn').onclick = requestExit;
+  document.getElementById('confirmStayBtn').onclick = cancelExit;
+  document.getElementById('confirmLeaveBtn').onclick = confirmExit;
   document.getElementById('menuBackBtn').onclick = () => { soundMenuClick(); goToModeSelect(); };
   document.getElementById('winNextBtn').onclick = () => {
     soundMenuClick();
