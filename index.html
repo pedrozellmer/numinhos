@@ -6,8 +6,26 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#ffe8d6">
-<title>Numinhos</title>
-<meta name="description" content="Jogo educacional de matemática para crianças brasileiras. Conheça os Numinhos e seus mentores: Capi, Tuca, Boto e Mira.">
+<title>Numinhos · pequenos números, grandes aventuras</title>
+<meta name="description" content="Numinhos — pequenos números, grandes aventuras. Some, subtraia, multiplique e divida com Capi, Tuca, Boto e Mira.">
+
+<!-- Open Graph / WhatsApp / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://numinhos.app/">
+<meta property="og:title" content="Numinhos · pequenos números, grandes aventuras">
+<meta property="og:description" content="Some, subtraia, multiplique e divida com Capi, Tuca, Boto e Mira. Joga grátis no celular ou no PC.">
+<meta property="og:image" content="https://numinhos.app/og-image.svg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Numinhos">
+<meta property="og:locale" content="pt_BR">
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Numinhos · pequenos números, grandes aventuras">
+<meta name="twitter:description" content="Some, subtraia, multiplique e divida com Capi, Tuca, Boto e Mira.">
+<meta name="twitter:image" content="https://numinhos.app/og-image.svg">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
@@ -40,12 +58,46 @@
 
   <!-- Tela Seleção de Modo (tela inicial) -->
   <div class="screen mode-select show" id="modeSelectScreen">
+    <button class="help-btn" id="helpBtn" aria-label="Como jogar">?</button>
     <div class="splash-title">Numinhos</div>
     <div class="splash-sub">ajude os Numinhos a chegarem no número certo 🎯</div>
     <div class="splash-mascots"></div>
     <div style="font-weight: 700; font-size: 14px; margin: 12px 0 4px; color: #2d1f3d; opacity: 0.7;">Escolha uma operação</div>
     <div class="mode-grid" id="modeGrid"></div>
-    <div style="font-size: 11px; opacity: 0.5; margin: 20px 0;">v0.4 · numinhos.app</div>
+    <div style="font-size: 11px; opacity: 0.5; margin: 20px 0;">v0.5 · numinhos.app</div>
+  </div>
+
+  <!-- Tela Como Jogar -->
+  <div class="screen modal-overlay" id="howToScreen">
+    <div class="modal-card how-to">
+      <div class="how-to-title">Como jogar</div>
+
+      <div class="how-step">
+        <div class="how-step-num">1</div>
+        <div class="how-step-text"><b>Os Numinhos descem</b> com um número no peito e um <span style="color:#daa520">alvo amarelo</span> (→ N) embaixo.</div>
+      </div>
+
+      <div class="how-step">
+        <div class="how-step-num">2</div>
+        <div class="how-step-text"><b>Arraste as cartas</b> da sua mão sobre o Numinho pra ele virar o número-alvo.</div>
+      </div>
+
+      <div class="how-step">
+        <div class="how-step-num">3</div>
+        <div class="how-step-text"><b>Não deixe passar</b> da linha de defesa! Se passar, perde uma vida.</div>
+      </div>
+
+      <div class="how-step">
+        <div class="how-step-num">4</div>
+        <div class="how-step-text">Cada operação tem um Mentor que ensina:<br>
+          <b style="color:#43d177">+ Capi</b> · <b style="color:#c92a2a">− Tuca</b> · <b style="color:#b58200">× Boto</b> · <b style="color:#2d4dc7">÷ Mira</b>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="howToCloseBtn">Beleza, bora jogar!</button>
+      </div>
+    </div>
   </div>
 
   <!-- Tela Menu / Mapa -->

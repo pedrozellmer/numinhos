@@ -394,6 +394,16 @@ export function bindNavigation() {
     updateHUD();
   };
 
+  // Botão "Como jogar"
+  document.getElementById('helpBtn').onclick = () => {
+    soundMenuClick();
+    document.getElementById('howToScreen').classList.add('show');
+  };
+  document.getElementById('howToCloseBtn').onclick = () => {
+    soundMenuClick();
+    document.getElementById('howToScreen').classList.remove('show');
+  };
+
   // Inicializar áudio na primeira interação (requisito de browsers)
   const startAudio = () => { initAudio(); document.removeEventListener('click', startAudio); document.removeEventListener('touchstart', startAudio); };
   document.addEventListener('click', startAudio);
