@@ -9,6 +9,49 @@ import {
   loadProgress, renderModeSelect, renderSplashMascots,
   bindNavigation, updateHUD, winLevel, loseLevel, flashMsg
 } from './ui.js';
+import { APP_VERSION } from './version.js';
+
+// ===== AUTO-UPDATE =====
+// Compara versão do código carregado com última versão vista pelo usuário.
+// Se mudou (após cache invalidation/SW ativando), só salva pra próxima.
+// O Service Worker faz o "pesado" — refetch sem cache em todas as requests.
+(function checkVersion() {
+  const stored = localStorage.getItem('numinhos_app_version');
+  if (stored && stored !== APP_VERSION) {
+    console.log(`[Numinhos] Atualizou: ${stored} → ${APP_VERSION}`);
+  }
+  localStorage.setItem('numinhos_app_version', APP_VERSION);
+  // Exposto pro console em desenvolvimento
+  window.__NUMINHOS_VERSION = APP_VERSION;
+})();
+
+// Registra Service Worker — controla cache e força refetch de assets
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    // Escuta atualizações enquanto a aba está aberta
+    reg.addEventListener('updatefound', () => {
+      const newSW = reg.installing;
+      if (!newSW) return;
+      newSW.addEventListener('statechange', () => {
+        if (newSW.state === 'activated' && navigator.serviceWorker.controller) {
+          console.log('[Numinhos] Nova versão instalada — recarregando...');
+          window.location.reload();
+        }
+      });
+    });
+    // Verifica atualização agora (e a cada 1 min enquanto a aba está aberta)
+    reg.update();
+    setInterval(() => reg.update(), 60_000);
+  }).catch(err => console.warn('[Numinhos] SW registration failed', err));
+
+  // Quando o SW assume controle, recarrega pra pegar tudo novo
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+}
 
 // ===== INIT =====
 state.progress = loadProgress();
