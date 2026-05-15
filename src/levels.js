@@ -80,7 +80,7 @@ export const MODES = {
           {value:8,target:20,delay:8.5,speed:0.22},
           {value:17,target:20,delay:11.0,speed:0.24},
         ] },
-      { id: 8, diff: 3, lives: 2, title: 'BOSS: Vinte!',
+      { id: 8, diff: 3, lives: 3, title: 'BOSS: Vinte!',
         handPool: [{op:'+',val:2},{op:'+',val:3},{op:'+',val:5},{op:'+',val:7},{op:'+',val:10}],
         enemies: [
           {value:5,target:10,delay:0.8,speed:0.24},
@@ -160,7 +160,7 @@ export const MODES = {
           {value:15,delay:8.0,speed:0.24},
           {value:13,delay:10.5,speed:0.26},
         ] },
-      { id: 8, diff: 3, lives: 2, title: 'BOSS: Vinte!',
+      { id: 8, diff: 3, lives: 3, title: 'BOSS: Vinte!',
         handPool: [{op:'-',val:2},{op:'-',val:3},{op:'-',val:5},{op:'-',val:7},{op:'-',val:10}],
         enemies: [
           {value:10,delay:0.8,speed:0.24},
@@ -266,15 +266,17 @@ export const MODES = {
           {value:7,target:14,delay:8.5,speed:0.24},
           {value:6,target:30,delay:11.0,speed:0.24},
         ] },
-      { id: 8, diff: 3, lives: 2, title: 'BOSS: Todas tabuadas',
-        handPool: [{op:'×',val:2},{op:'×',val:3},{op:'×',val:4},{op:'×',val:5},{op:'×',val:6},{op:'×',val:7},{op:'×',val:8},{op:'×',val:9},{op:'×',val:10}],
+      { id: 8, diff: 3, lives: 3, title: 'BOSS: Tabuada Mestre',
+        // Inimigos COMPOSTOS — vários caminhos cada (×2×6, ×3×4, ×4×3...).
+        // Evita o problema de "carta única" que parecia bug.
+        handPool: [{op:'×',val:2},{op:'×',val:3},{op:'×',val:4},{op:'×',val:5},{op:'×',val:6}],
         enemies: [
-          {value:3,target:21,delay:0.8,speed:0.24},
-          {value:4,target:32,delay:2.8,speed:0.26},
-          {value:6,target:54,delay:4.8,speed:0.26},
-          {value:5,target:35,delay:6.8,speed:0.26},
-          {value:7,target:49,delay:9.0,speed:0.26},
-          {value:8,target:72,delay:11.0,speed:0.26},
+          {value:2,target:12,delay:0.8,speed:0.22},  // ×6, ×2×3, ×3×2
+          {value:3,target:24,delay:2.8,speed:0.24},  // ×2×4, ×4×2, ×8(n/a)→ ×2×2×... várias
+          {value:4,target:24,delay:5.0,speed:0.24},  // ×6, ×2×3, ×3×2
+          {value:2,target:36,delay:7.2,speed:0.24},  // ×2×3×3, ×3×6, ×6×3, ×2×2×... várias
+          {value:3,target:36,delay:9.4,speed:0.26},  // ×2×6, ×6×2, ×3×4, ×4×3, ×3×2×2
+          {value:2,target:48,delay:11.6,speed:0.26}, // ×2×4×... ×4×2×6, ×6×4×2, ×2×3×... várias
         ] },
     ]
   },
@@ -359,7 +361,7 @@ export const MODES = {
           {value:30,target:1,delay:8.0,speed:0.24},
           {value:24,target:1,delay:10.5,speed:0.24},
         ] },
-      { id: 8, diff: 3, lives: 2, title: 'BOSS: Cem!',
+      { id: 8, diff: 3, lives: 3, title: 'BOSS: Cem!',
         handPool: [{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:4},{op:'÷',val:5},{op:'÷',val:6},{op:'÷',val:10}],
         enemies: [
           {value:100,target:1,delay:0.8,speed:0.22},
@@ -442,15 +444,16 @@ export const MODES = {
           {value:25,target:1,delay:9.0,speed:0.26},
           {value:10,target:0,delay:11.0,speed:0.26},
         ] },
-      { id: 8, diff: 3, lives: 2, title: 'BOSS Final',
-        handPool: [{op:'+',val:5},{op:'+',val:10},{op:'-',val:10},{op:'-',val:20},{op:'×',val:2},{op:'×',val:3},{op:'×',val:5},{op:'÷',val:2},{op:'÷',val:3},{op:'÷',val:5}],
+      { id: 8, diff: 3, lives: 3, title: 'BOSS Final',
+        // Inimigos com MÚLTIPLOS caminhos — sem "carta única" frustrante.
+        handPool: [{op:'+',val:5},{op:'+',val:10},{op:'-',val:5},{op:'-',val:10},{op:'×',val:2},{op:'×',val:3},{op:'÷',val:2},{op:'÷',val:3}],
         enemies: [
-          {value:5,target:15,delay:0.8,speed:0.24},
-          {value:20,target:0,delay:2.5,speed:0.26},
-          {value:8,target:1,delay:4.5,speed:0.26},
-          {value:4,target:20,delay:6.5,speed:0.26},
-          {value:6,target:30,delay:8.5,speed:0.26},
-          {value:25,target:1,delay:10.5,speed:0.28},
+          {value:5,target:15,delay:0.8,speed:0.22},   // +10, ×3, +5+5
+          {value:20,target:0,delay:2.6,speed:0.24},   // -10-10, -10-5-5, -5×4
+          {value:12,target:2,delay:4.8,speed:0.24},   // ÷2÷3, ÷3÷2
+          {value:10,target:20,delay:7.0,speed:0.24},  // +10, ×2, +5+5
+          {value:10,target:30,delay:9.2,speed:0.26},  // ×3, +10+10, +5+5+10
+          {value:18,target:1,delay:11.4,speed:0.26},  // ÷2÷3÷3, ÷3÷2÷3, ÷3÷3÷2 — vários
         ] },
     ]
   },
