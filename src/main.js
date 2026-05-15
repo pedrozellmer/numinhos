@@ -10,6 +10,7 @@ import {
   bindNavigation, updateHUD, winLevel, loseLevel, flashMsg, ensureHandPlayable
 } from './ui.js';
 import { APP_VERSION } from './version.js';
+import { trackSessionStart } from './telemetry.js';
 
 // ===== AUTO-UPDATE =====
 // Compara versão do código carregado com última versão vista pelo usuário.
@@ -55,6 +56,7 @@ if ('serviceWorker' in navigator) {
 
 // ===== INIT =====
 state.progress = loadProgress();
+trackSessionStart();
 validateAllModes(MODES, MODE_ORDER);
 initCanvas();
 renderSplashMascots();

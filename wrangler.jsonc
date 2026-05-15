@@ -1,15 +1,24 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "numinhos",
+  "main": "worker.js",
   "compatibility_date": "2026-05-13",
   "observability": {
     "enabled": true
   },
   "assets": {
-    "directory": "."
+    "directory": ".",
+    "binding": "ASSETS"
   },
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "numinhos-telemetry",
+      "database_id": "dfe8d1d3-fe6e-43b0-beaa-4578160668f8"
+    }
   ],
   "routes": [
     { "pattern": "numinhos.app", "custom_domain": true },

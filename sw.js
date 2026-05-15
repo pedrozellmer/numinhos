@@ -29,6 +29,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
+  // Telemetria e APIs — NÃO intercepta, deixa o browser enviar direto
+  // (sendBeacon + SW podem conflitar; e POST não deve ser cacheado).
+  if (url.pathname.startsWith('/api/')) return;
+
   // Fontes externas — cache agressivo (não mudam)
   if (url.host === 'fonts.googleapis.com' || url.host === 'fonts.gstatic.com') {
     event.respondWith(

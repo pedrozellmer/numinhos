@@ -6,6 +6,7 @@ import { MODES, MODE_ORDER } from './levels.js';
 import { applyOp, pickSmartCard, buildOptimalInitialHand, findHandFix, showInvalidFeedback } from './engine.js';
 import { getDims, getCanvas, resize } from './render.js';
 import { soundMenuClick, soundWinLevel, soundLoseLevel, initAudio } from './audio.js';
+import { trackModeSelected, trackLevelStarted, trackLevelWon, trackLevelLost, trackLevelQuit } from './telemetry.js';
 
 // =========== PROGRESS ===========
 export function loadProgress() {
@@ -66,6 +67,7 @@ export function renderModeSelect() {
 
 function enterMode(modeId) {
   state.currentMode = modeId;
+  trackModeSelected(modeId);
   setLevels(MODES[modeId].levels);
   const mode = MODES[modeId];
   document.getElementById('menuTitle').textContent = `${mode.icon} ${mode.label}`;
@@ -134,6 +136,7 @@ export function startLevel(lvl) {
   resize();
 
   refillHand(true);
+  trackLevelStarted(state.currentMode, lvl.id);
   if (lvl.tutorial) showTutorial(lvl.tutorial);
 }
 
@@ -367,6 +370,7 @@ export function winLevel() {
     const lvl = state.currentLevel;
     const mode = MODES[state.currentMode];
     recordProgress(state.currentMode, lvl.id, stars, state.score);
+    trackLevelWon(state.currentMode, lvl.id, stars, state.score);
 
     // Mentor da operação atual celebra
     document.getElementById('winMentor').innerHTML = mode.mentor.svg;
@@ -411,6 +415,7 @@ function computeStars() {
 export function loseLevel() {
   state.gameRunning = false;
   state.lossOfLevel = true;
+  if (state.currentLevel) trackLevelLost(state.currentMode, state.currentLevel.id);
   flashMsg('💔', '#e63946');
   soundLoseLevel();
   setTimeout(() => {
@@ -472,6 +477,7 @@ function cancelExit() {
 function confirmExit() {
   soundMenuClick();
   pausedByExitConfirm = false;
+  if (state.currentLevel) trackLevelQuit(state.currentMode, state.currentLevel.id);
   document.getElementById('confirmExitScreen').classList.remove('show');
   goToLevelMenu();
 }

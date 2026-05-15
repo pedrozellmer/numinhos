@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Numinhos — Painel de Estatísticas</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    background: linear-gradient(180deg, #2d1f3d 0%, #1a1525 100%);
+    color: #f0e9ff; min-height: 100vh; padding: 24px 16px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  .sub { font-size: 13px; opacity: 0.5; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .card {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 16px;
+  }
+  .card .label { font-size: 11px; opacity: 0.55; text-transform: uppercase; letter-spacing: 0.05em; }
+  .card .value { font-size: 32px; font-weight: 800; margin-top: 4px; }
+  .card .hint { font-size: 11px; opacity: 0.45; margin-top: 2px; }
+  .card.highlight { background: linear-gradient(135deg, rgba(255,107,107,0.15), rgba(108,141,255,0.15)); border-color: rgba(255,209,102,0.3); }
+  h2 { font-size: 15px; margin: 20px 0 10px; opacity: 0.8; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  th { opacity: 0.5; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+  .bar { display: inline-block; height: 8px; background: linear-gradient(90deg, #ff6b6b, #ffd166); border-radius: 4px; }
+  .err { background: #5a1a1a; padding: 16px; border-radius: 10px; }
+  .loading { opacity: 0.5; padding: 40px; text-align: center; }
+  input { padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #fff; font-size: 14px; }
+  button { padding: 8px 16px; border-radius: 8px; border: none; background: #6c8dff; color: #fff; font-weight: 700; cursor: pointer; }
+  .footer { font-size: 11px; opacity: 0.35; margin-top: 30px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📊 Numinhos — Estatísticas</h1>
+  <div class="sub" id="generatedAt">carregando…</div>
+  <div id="content"><div class="loading">Carregando dados…</div></div>
+  <div class="footer">Telemetria 100% anônima · sem dados pessoais · numinhos.app</div>
+</div>
+
+<script>
+const KEY = new URLSearchParams(location.search).get('key') || '';
+const content = document.getElementById('content');
+
+function card(label, value, hint, highlight) {
+  return `<div class="card${highlight ? ' highlight' : ''}">
+    <div class="label">${label}</div>
+    <div class="value">${value}</div>
+    ${hint ? `<div class="hint">${hint}</div>` : ''}
+  </div>`;
+}
+
+function fmtTime(sec) {
+  if (!sec) return '0s';
+  if (sec < 60) return Math.round(sec) + 's';
+  return Math.floor(sec / 60) + 'min ' + Math.round(sec % 60) + 's';
+}
+
+async function load() {
+  if (!KEY) {
+    content.innerHTML = `<div class="err">Faltou a chave. Acesse com <b>?key=SUA_CHAVE</b> no final da URL.</div>`;
+    return;
+  }
+  try {
+    const r = await fetch('/api/stats?key=' + encodeURIComponent(KEY));
+    if (r.status === 403) { content.innerHTML = `<div class="err">Chave inválida.</div>`; return; }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const s = await r.json();
+    render(s);
+  } catch (e) {
+    content.innerHTML = `<div class="err">Erro ao carregar: ${e.message}</div>`;
+  }
+}
+
+function render(s) {
+  document.getElementById('generatedAt').textContent =
+    'atualizado em ' + new Date(s.geradoEm).toLocaleString('pt-BR');
+
+  let html = '';
+
+  // Pessoas
+  html += '<h2>👥 Pessoas</h2><div class="grid">';
+  html += card('Abriram o app', s.pessoas.total, 'navegadores únicos');
+  html += card('Jogaram de fato', s.pessoas.jogaramDeFato, 'começaram ≥ 1 fase', true);
+  html += card('Novas', s.pessoas.novas, 'primeira visita');
+  html += card('Voltaram', s.pessoas.retornaram, 'em 2+ dias diferentes');
+  html += '</div>';
+
+  // Sessões
+  html += '<h2>⏱️ Sessões</h2><div class="grid">';
+  html += card('Total', s.sessoes.total);
+  html += card('Últimos 7 dias', s.sessoes.ultimos7dias);
+  html += card('Últimas 24h', s.sessoes.ultimas24h);
+  html += card('Tempo médio', fmtTime(s.sessoes.tempoMedioSegundos), 'por sessão');
+  html += '</div>';
+
+  // Fases
+  html += '<h2>🎮 Fases</h2><div class="grid">';
+  html += card('Iniciadas', s.fases.iniciadas);
+  html += card('Vencidas', s.fases.vencidas);
+  html += card('Perdidas', s.fases.perdidas);
+  html += card('Abandonadas', s.fases.abandonadas);
+  html += card('Taxa de vitória', s.fases.taxaVitoria, '', true);
+  html += '</div>';
+
+  // Modo mais jogado
+  if (s.modoMaisJogado && s.modoMaisJogado.length) {
+    const max = Math.max(...s.modoMaisJogado.map(m => m.n));
+    html += '<h2>🎯 Modo mais jogado</h2><table><tr><th>Modo</th><th>Vezes</th><th></th></tr>';
+    for (const m of s.modoMaisJogado) {
+      html += `<tr><td>${m.mode}</td><td>${m.n}</td>
+        <td><span class="bar" style="width:${(m.n / max) * 200}px"></span></td></tr>`;
+    }
+    html += '</table>';
+  }
+
+  // Onde desiste
+  if (s.ondeDesiste && s.ondeDesiste.length) {
+    html += '<h2>🚧 Onde a criança mais perde/abandona</h2>';
+    html += '<table><tr><th>Modo</th><th>Fase</th><th>Perdeu</th><th>Abandonou</th><th>Venceu</th></tr>';
+    for (const d of s.ondeDesiste) {
+      html += `<tr><td>${d.mode}</td><td>${d.level}</td><td>${d.lost}</td><td>${d.quit}</td><td>${d.won}</td></tr>`;
+    }
+    html += '</table>';
+  }
+
+  // Países
+  if (s.paises && s.paises.length) {
+    html += '<h2>🌎 Países</h2><table><tr><th>País</th><th>Pessoas</th></tr>';
+    for (const c of s.paises) html += `<tr><td>${c.country}</td><td>${c.n}</td></tr>`;
+    html += '</table>';
+  }
+
+  content.innerHTML = html;
+}
+
+load();
+</script>
+</body>
+</html>
