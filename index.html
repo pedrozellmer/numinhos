@@ -66,13 +66,24 @@
 
   <!-- Tela Seleção de Modo (tela inicial) -->
   <div class="screen mode-select show" id="modeSelectScreen">
+    <!-- Motion de fundo: Numinhos descendo, comunica o gameplay imediatamente -->
+    <div class="splash-bg" aria-hidden="true">
+      <svg class="bg-numinho n1" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#43d177" stroke="#fff" stroke-width="4"/><circle cx="38" cy="36" r="6" fill="#fff"/><circle cx="62" cy="36" r="6" fill="#fff"/><circle cx="38" cy="37" r="3" fill="#2d1f3d"/><circle cx="62" cy="37" r="3" fill="#2d1f3d"/><text x="50" y="62" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="900" font-size="26" fill="#fff">3</text></svg>
+      <svg class="bg-numinho n2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#ffd166" stroke="#fff" stroke-width="4"/><circle cx="38" cy="36" r="6" fill="#fff"/><circle cx="62" cy="36" r="6" fill="#fff"/><circle cx="38" cy="37" r="3" fill="#2d1f3d"/><circle cx="62" cy="37" r="3" fill="#2d1f3d"/><text x="50" y="62" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="900" font-size="26" fill="#fff">7</text></svg>
+      <svg class="bg-numinho n3" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#ff8e3c" stroke="#fff" stroke-width="4"/><circle cx="38" cy="36" r="6" fill="#fff"/><circle cx="62" cy="36" r="6" fill="#fff"/><circle cx="38" cy="37" r="3" fill="#2d1f3d"/><circle cx="62" cy="37" r="3" fill="#2d1f3d"/><text x="50" y="62" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="900" font-size="26" fill="#fff">12</text></svg>
+      <svg class="bg-numinho n4" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#6c8dff" stroke="#fff" stroke-width="4"/><circle cx="38" cy="36" r="6" fill="#fff"/><circle cx="62" cy="36" r="6" fill="#fff"/><circle cx="38" cy="37" r="3" fill="#2d1f3d"/><circle cx="62" cy="37" r="3" fill="#2d1f3d"/><text x="50" y="62" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="900" font-size="26" fill="#fff">5</text></svg>
+      <svg class="bg-numinho n5" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#9d4edd" stroke="#fff" stroke-width="4"/><circle cx="38" cy="36" r="6" fill="#fff"/><circle cx="62" cy="36" r="6" fill="#fff"/><circle cx="38" cy="37" r="3" fill="#2d1f3d"/><circle cx="62" cy="37" r="3" fill="#2d1f3d"/><text x="50" y="62" text-anchor="middle" font-family="Baloo 2, sans-serif" font-weight="900" font-size="26" fill="#fff">9</text></svg>
+    </div>
     <button class="help-btn" id="helpBtn" aria-label="Como jogar">?</button>
     <div class="splash-title">Numinhos</div>
     <div class="splash-sub">ajude os Numinhos a chegarem no número certo 🎯</div>
     <div class="splash-mascots"></div>
     <div style="font-weight: 700; font-size: 14px; margin: 12px 0 4px; color: #2d1f3d; opacity: 0.7;">Escolha uma operação</div>
     <div class="mode-grid" id="modeGrid"></div>
-    <div style="font-size: 11px; opacity: 0.5; margin: 20px 0;">v0.5 · numinhos.app</div>
+    <div style="font-size: 11px; opacity: 0.5; margin: 20px 0; text-align: center;">
+      v0.5 · numinhos.app<br>
+      <a href="/privacidade.html" style="color: inherit; text-decoration: underline; opacity: 0.7;">privacidade</a>
+    </div>
   </div>
 
   <!-- Tela Como Jogar -->

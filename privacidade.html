@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Numinhos — Política de Privacidade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Fredoka', system-ui, sans-serif;
+    background: linear-gradient(180deg, #ffe8d6 0%, #ffd6e8 50%, #d6e8ff 100%);
+    color: #2d1f3d;
+    min-height: 100vh;
+    padding: 32px 20px 60px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; }
+  h1 {
+    font-family: 'Baloo 2', sans-serif; font-weight: 800;
+    font-size: 36px; margin-bottom: 4px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ffd166 50%, #6c8dff 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .updated { font-size: 13px; opacity: 0.55; margin-bottom: 28px; }
+  h2 {
+    font-family: 'Baloo 2', sans-serif; font-weight: 800;
+    font-size: 22px; margin: 28px 0 10px;
+  }
+  p { margin-bottom: 12px; font-size: 15px; }
+  ul { margin: 8px 0 16px 22px; }
+  li { margin-bottom: 6px; font-size: 15px; }
+  strong { font-weight: 700; }
+  a { color: #6b46c1; }
+  .highlight {
+    background: rgba(255,255,255,0.6);
+    border-left: 4px solid #ffd166;
+    padding: 14px 18px; border-radius: 10px;
+    margin: 14px 0;
+  }
+  .back {
+    display: inline-block;
+    margin-top: 32px;
+    padding: 10px 24px; border-radius: 999px;
+    background: #2d1f3d; color: white;
+    text-decoration: none; font-weight: 700; font-size: 14px;
+  }
+  .footer {
+    margin-top: 40px; padding-top: 20px;
+    border-top: 1px solid rgba(45,31,61,0.1);
+    font-size: 12px; opacity: 0.55;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Política de Privacidade</h1>
+<div class="updated">Última atualização: 17 de maio de 2026 · numinhos.app</div>
+
+<div class="highlight">
+  <strong>Resumo em 1 frase:</strong> o Numinhos <strong>não coleta dado pessoal nenhum</strong>.
+  Sem nome, sem e-mail, sem idade, sem foto, sem localização precisa. Apenas
+  números de uso totalmente anônimos pra entender se o jogo está funcionando.
+</div>
+
+<h2>Quem somos</h2>
+<p>
+  O <strong>Numinhos</strong> é um jogo educacional de matemática desenvolvido por
+  Pedro Zellmer. Ele é gratuito, sem anúncios, e funciona direto no navegador
+  pelo endereço <a href="https://numinhos.app">numinhos.app</a>.
+</p>
+
+<h2>O que coletamos (e o que NÃO coletamos)</h2>
+<p><strong>NÃO coletamos:</strong></p>
+<ul>
+  <li>Nome, sobrenome, apelido</li>
+  <li>E-mail, telefone, endereço</li>
+  <li>Idade, data de nascimento, gênero</li>
+  <li>Foto, voz, qualquer imagem da criança</li>
+  <li>Localização exata (GPS, endereço)</li>
+  <li>Dados de outros aplicativos ou contatos</li>
+</ul>
+<p><strong>Coletamos apenas (de forma anônima):</strong></p>
+<ul>
+  <li>Um identificador aleatório (UUID) gerado no seu navegador — não revela
+    quem você é, serve só pra contar quantos navegadores diferentes abrem o jogo
+    e medir se voltam outro dia.</li>
+  <li>Eventos de uso: "abriu o jogo", "escolheu Soma", "ganhou fase 3",
+    "perdeu fase 5". Sem qualquer informação pessoal junto.</li>
+  <li>País aproximado (ex: BR, US) detectado pelo provedor de internet —
+    nunca o endereço.</li>
+  <li>Pontuação e progresso do jogo salvos <strong>localmente no seu navegador</strong>
+    (localStorage). Esses dados nunca saem do seu dispositivo.</li>
+</ul>
+
+<h2>Por que coletamos</h2>
+<p>
+  Só pra responder perguntas como "quantas pessoas jogaram?", "qual fase é
+  mais difícil?", "as pessoas voltam pra jogar de novo?". Esses dados nos
+  ajudam a melhorar o jogo. Não há marketing, não há venda de dados pra terceiros,
+  não há perfil individual.
+</p>
+
+<h2>Crianças e a LGPD</h2>
+<p>
+  O Numinhos foi pensado pra crianças de 6 a 11 anos. A Lei Geral de Proteção
+  de Dados (LGPD, art. 14) exige consentimento parental específico para
+  tratamento de dados de menores de 12 anos.
+</p>
+<p>
+  Nossa abordagem é simples: <strong>não tratamos dado pessoal de criança
+  alguma</strong>. O UUID anônimo no navegador não identifica a criança — não
+  é PII (Personally Identifiable Information). Portanto, não há consentimento
+  parental a ser pedido, porque não há dado pessoal sendo tratado.
+</p>
+
+<h2>Como armazenamos</h2>
+<ul>
+  <li><strong>No seu dispositivo:</strong> progresso do jogo (estrelas, fases
+    concluídas) via localStorage do navegador. Você pode apagar a qualquer
+    momento limpando os dados do navegador.</li>
+  <li><strong>Em servidor (Cloudflare):</strong> eventos de uso anônimos.
+    Banco de dados criptografado, acesso restrito ao desenvolvedor. Sem
+    backup pessoal — não tem como.</li>
+</ul>
+
+<h2>Cookies</h2>
+<p>
+  Não usamos cookies de rastreamento. Usamos apenas localStorage pra salvar
+  seu progresso no jogo, o que é tecnicamente diferente de cookie.
+</p>
+
+<h2>Seus direitos (LGPD)</h2>
+<p>
+  Mesmo sem coletarmos dado pessoal, você tem direitos garantidos pela LGPD:
+</p>
+<ul>
+  <li><strong>Apagar tudo:</strong> limpe os dados do navegador (Configurações →
+    Privacidade → Limpar dados de sites). Isso apaga seu progresso e seu UUID
+    anônimo. Na próxima visita, você é considerado um novo usuário.</li>
+  <li><strong>Saber o que existe:</strong> os eventos guardados estão descritos
+    nesta página. Não há mais nada.</li>
+  <li><strong>Contato:</strong> pedro.zellmer@gmail.com</li>
+</ul>
+
+<h2>Terceiros</h2>
+<p>
+  O site é servido pela <a href="https://cloudflare.com">Cloudflare</a>
+  (CDN, hospedagem). Eles podem ver dados de tráfego básicos (IP, navegador,
+  país) conforme a <a href="https://www.cloudflare.com/privacypolicy/">política
+  deles</a>. Fontes carregadas do Google Fonts seguem a política do Google.
+  Nenhum outro terceiro tem acesso aos dados do jogo.
+</p>
+
+<h2>Mudanças nesta política</h2>
+<p>
+  Se mudarmos algo importante (ex: passar a coletar e-mail pra criar conta),
+  vamos avisar com clareza no próprio jogo antes da mudança valer.
+</p>
+
+<h2>Contato</h2>
+<p>
+  Dúvidas, sugestões ou pedidos: <a href="mailto:pedro.zellmer@gmail.com">pedro.zellmer@gmail.com</a>
+</p>
+
+<a href="/" class="back">← Voltar ao jogo</a>
+
+<div class="footer">
+  Numinhos · pequenos números, grandes aventuras<br>
+  numinhos.app
+</div>
+
+</div>
+</body>
+</html>
