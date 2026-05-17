@@ -60,6 +60,15 @@ function track(eventType, data = {}) {
 export function trackSessionStart() {
   track('session_start');
 }
+// Quando a tela de seleção de modo é mostrada — útil pra distinguir
+// "viu os modos mas não clicou em nenhum" de "viu e escolheu modo X".
+// Idempotente por sessão: dispara só uma vez por carregamento.
+let modeSelectShownSent = false;
+export function trackModeSelectShown() {
+  if (modeSelectShownSent) return;
+  modeSelectShownSent = true;
+  track('mode_select_shown');
+}
 export function trackModeSelected(mode) {
   track('mode_selected', { mode });
 }

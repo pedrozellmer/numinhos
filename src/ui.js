@@ -6,7 +6,7 @@ import { MODES, MODE_ORDER } from './levels.js';
 import { applyOp, pickSmartCard, buildOptimalInitialHand, findHandFix, showInvalidFeedback } from './engine.js';
 import { getDims, getCanvas, resize } from './render.js';
 import { soundMenuClick, soundWinLevel, soundLoseLevel, initAudio } from './audio.js';
-import { trackModeSelected, trackLevelStarted, trackLevelWon, trackLevelLost, trackLevelQuit } from './telemetry.js';
+import { trackModeSelectShown, trackModeSelected, trackLevelStarted, trackLevelWon, trackLevelLost, trackLevelQuit } from './telemetry.js';
 
 // =========== PROGRESS ===========
 export function loadProgress() {
@@ -33,6 +33,7 @@ export function recordProgress(modeId, levelId, stars, score) {
 
 // =========== MODE SELECT ===========
 export function renderModeSelect() {
+  trackModeSelectShown();
   const grid = document.getElementById('modeGrid');
   grid.innerHTML = '';
   MODE_ORDER.forEach(modeId => {

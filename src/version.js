@@ -2,4 +2,4 @@
 // O boot compara com localStorage; se diferente, força reload limpo.
 //
 // Convenção: AAAAMMDD-HHMM ou tag semântica curta.
-export const APP_VERSION = '20260515-telemetry';
+export const APP_VERSION = '20260517-numinho-redesign';

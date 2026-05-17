@@ -127,15 +127,15 @@ function drawEnemyBody(x, y, radius, value, flash, target) {
   ctx.beginPath();
   ctx.arc(0, 0, radius, 0, Math.PI * 2);
   ctx.stroke();
-  // Olhinhos do Numinho — dão personalidade
-  const eyeR = radius * 0.14;
-  const eyeY = -radius * 0.18;
+  // Olhinhos — colados no topo pra liberar espaço pro número grande no centro
+  const eyeR = radius * 0.13;
+  const eyeY = -radius * 0.35;
   ctx.fillStyle = 'white';
-  ctx.beginPath(); ctx.arc(-radius * 0.30, eyeY, eyeR, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc( radius * 0.30, eyeY, eyeR, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-radius * 0.28, eyeY, eyeR, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc( radius * 0.28, eyeY, eyeR, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#2d1f3d';
-  ctx.beginPath(); ctx.arc(-radius * 0.30, eyeY + 1, eyeR * 0.55, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc( radius * 0.30, eyeY + 1, eyeR * 0.55, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-radius * 0.28, eyeY + 1, eyeR * 0.55, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc( radius * 0.28, eyeY + 1, eyeR * 0.55, 0, Math.PI * 2); ctx.fill();
   // Flash
   if (flash > 0) {
     ctx.fillStyle = `rgba(255,255,255,${flash * 0.6})`;
@@ -143,40 +143,44 @@ function drawEnemyBody(x, y, radius, value, flash, target) {
     ctx.arc(0, 0, radius, 0, Math.PI * 2);
     ctx.fill();
   }
-  // Número (valor atual do Numinho)
+  // Número (valor atual) — GRANDE e CENTRADO, ocupa o miolo do círculo.
+  // Sem sobreposição com a banda amarela porque ela fica pendurada FORA.
   ctx.fillStyle = 'white';
-  ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+  ctx.lineWidth = Math.max(3, radius * 0.06);
   const valStr = String(value);
-  const fontSize = valStr.length > 2 ? radius * 0.50 : radius * 0.66;
+  const fontSize = valStr.length > 2 ? radius * 0.55 : radius * 0.72;
   ctx.font = `800 ${fontSize}px 'Baloo 2', sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const yOffset = radius * 0.08;
+  const yOffset = radius * 0.12;
   ctx.strokeText(valStr, 0, yOffset);
   ctx.fillText(valStr, 0, yOffset);
 
-  // ALVO sempre visível — incluindo target=0 (modo Subtração).
-  // Banda amarela com "→ N" embaixo. Pedagogicamente essencial — a usuária
-  // não deve nunca ficar sem saber pra onde está indo o Numinho.
+  // ALVO — "selo" amarelo PENDURADO na borda inferior, parcialmente FORA
+  // do círculo. Separação clara do número branco, contraste alto, fácil de ler.
   const targetStr = '→ ' + target;
-  const tFontSize = radius * 0.42;
+  const tFontSize = radius * 0.36;
   ctx.font = `800 ${tFontSize}px 'Baloo 2', sans-serif`;
   const bandH = tFontSize * 1.5;
-  const bandY = radius * 0.55;
-  const bandW = Math.max(ctx.measureText(targetStr).width + 14, radius * 1.1);
+  const bandY = radius * 0.95;   // pendurado na base do círculo
+  const bandW = Math.max(ctx.measureText(targetStr).width + 16, radius * 1.0);
   ctx.fillStyle = '#ffd84d';
-  ctx.strokeStyle = '#c8941a';
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = '#a87800';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = 'rgba(0,0,0,0.18)';
+  ctx.shadowBlur = 5;
+  ctx.shadowOffsetY = 2;
   ctx.beginPath();
   if (ctx.roundRect) {
-    ctx.roundRect(-bandW/2, bandY - bandH*0.5, bandW, bandH, 7);
+    ctx.roundRect(-bandW/2, bandY - bandH*0.5, bandW, bandH, 8);
   } else {
     ctx.rect(-bandW/2, bandY - bandH*0.5, bandW, bandH);
   }
   ctx.fill();
   ctx.stroke();
-  ctx.fillStyle = '#5a3d00';
+  ctx.shadowColor = 'transparent';
+  ctx.fillStyle = '#3d2700';
   ctx.fillText(targetStr, 0, bandY + 1);
   ctx.restore();
 }
