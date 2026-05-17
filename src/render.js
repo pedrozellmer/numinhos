@@ -160,11 +160,11 @@ function drawEnemyBody(x, y, radius, value, flash, target) {
   // ALVO — "selo" amarelo PENDURADO na borda inferior, parcialmente FORA
   // do círculo. Separação clara do número branco, contraste alto, fácil de ler.
   const targetStr = '→ ' + target;
-  const tFontSize = radius * 0.36;
+  const tFontSize = radius * 0.48;
   ctx.font = `800 ${tFontSize}px 'Baloo 2', sans-serif`;
-  const bandH = tFontSize * 1.5;
-  const bandY = radius * 0.95;   // pendurado na base do círculo
-  const bandW = Math.max(ctx.measureText(targetStr).width + 16, radius * 1.0);
+  const bandH = tFontSize * 1.45;
+  const bandY = radius * 1.02;   // pendurado na base do círculo
+  const bandW = Math.max(ctx.measureText(targetStr).width + 20, radius * 1.15);
   ctx.fillStyle = '#ffd84d';
   ctx.strokeStyle = '#a87800';
   ctx.lineWidth = 2;
