@@ -31,6 +31,18 @@ function getClient() {
 const { id: CLIENT_ID, isNew: IS_NEW_CLIENT } = getClient();
 const SESSION_ID = genId('s-');
 
+// Detecta tipo de dispositivo via User-Agent (mobile / tablet / desktop)
+function detectDevice() {
+  try {
+    const ua = navigator.userAgent || '';
+    if (/iPad|Tablet|PlayBook|Silk/i.test(ua) ||
+        (/Android/i.test(ua) && !/Mobile/i.test(ua))) return 'tablet';
+    if (/Mobile|iPhone|iPod|Android|BlackBerry|Opera Mini|IEMobile/i.test(ua)) return 'mobile';
+    return 'desktop';
+  } catch { return 'unknown'; }
+}
+const DEVICE_TYPE = detectDevice();
+
 let levelStartedAt = 0;
 
 // Envio fire-and-forget — nunca trava nem quebra o jogo se falhar.
@@ -51,6 +63,7 @@ function track(eventType, data = {}) {
     client_id: CLIENT_ID,
     session_id: SESSION_ID,
     event_type: eventType,
+    device_type: DEVICE_TYPE,
     is_new_client: eventType === 'session_start' ? IS_NEW_CLIENT : false,
     ...data,
   });

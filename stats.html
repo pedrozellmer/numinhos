@@ -10,49 +10,149 @@
   body {
     font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
     background: linear-gradient(180deg, #2d1f3d 0%, #1a1525 100%);
-    color: #f0e9ff; min-height: 100vh; padding: 24px 16px;
+    color: #f0e9ff; min-height: 100vh; padding: 24px 16px 60px;
   }
-  .wrap { max-width: 760px; margin: 0 auto; }
-  h1 { font-size: 24px; margin-bottom: 4px; }
-  .sub { font-size: 13px; opacity: 0.5; margin-bottom: 24px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
+  h1 { font-size: 22px; }
+  .sub { font-size: 12px; opacity: 0.5; margin-bottom: 16px; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; }
+  .period { display: inline-flex; background: rgba(255,255,255,0.06); border-radius: 999px; padding: 3px; }
+  .period button { background: transparent; border: none; color: #f0e9ff; padding: 7px 14px; border-radius: 999px; cursor: pointer; font-size: 12px; font-weight: 600; }
+  .period button.active { background: #6c8dff; color: #fff; }
+  .toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; opacity: 0.7; cursor: pointer; }
+  .csv-btn { font-size: 12px; padding: 7px 14px; border-radius: 999px; background: #43d177; border: none; color: #fff; font-weight: 700; cursor: pointer; text-decoration: none; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 18px; }
   .card {
     background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px; padding: 16px;
+    border-radius: 14px; padding: 14px;
   }
+  .card.highlight { background: linear-gradient(135deg, rgba(255,107,107,0.15), rgba(108,141,255,0.15)); border-color: rgba(255,209,102,0.35); }
   .card .label { font-size: 11px; opacity: 0.55; text-transform: uppercase; letter-spacing: 0.05em; }
-  .card .value { font-size: 32px; font-weight: 800; margin-top: 4px; }
+  .card .value { font-size: 28px; font-weight: 800; margin-top: 4px; }
   .card .hint { font-size: 11px; opacity: 0.45; margin-top: 2px; }
-  .card.highlight { background: linear-gradient(135deg, rgba(255,107,107,0.15), rgba(108,141,255,0.15)); border-color: rgba(255,209,102,0.3); }
-  h2 { font-size: 15px; margin: 20px 0 10px; opacity: 0.8; }
+  .card .delta { font-size: 12px; margin-top: 2px; font-weight: 700; }
+  .delta.up { color: #43d177; }
+  .delta.down { color: #ff6b6b; }
+  .delta.flat { color: #aaa; opacity: 0.7; }
+
+  h2 { font-size: 14px; margin: 22px 0 10px; opacity: 0.8; letter-spacing: 0.04em; text-transform: uppercase; }
+
+  /* Funil */
+  .funnel { display: flex; flex-direction: column; gap: 6px; max-width: 560px; }
+  .funnel-row { display: grid; grid-template-columns: 140px 1fr 60px; gap: 10px; align-items: center; }
+  .funnel-row .label { font-size: 13px; opacity: 0.85; }
+  .funnel-row .bar-wrap { background: rgba(255,255,255,0.06); border-radius: 6px; height: 28px; overflow: hidden; }
+  .funnel-row .bar { height: 100%; background: linear-gradient(90deg, #6c8dff, #ff6b6b); display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; color: #fff; font-weight: 800; font-size: 13px; transition: width 0.5s; }
+  .funnel-row .pct { font-size: 12px; opacity: 0.7; text-align: right; }
+  .drop { font-size: 11px; opacity: 0.5; margin-left: 140px; padding-left: 10px; }
+
+  /* Buckets */
+  .buckets { display: flex; gap: 4px; height: 60px; align-items: flex-end; }
+  .bucket { flex: 1; background: rgba(255,255,255,0.08); border-radius: 6px 6px 0 0; position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 4px; min-height: 4px; }
+  .bucket .b-val { position: absolute; top: -22px; font-size: 11px; font-weight: 700; }
+  .bucket .b-label { font-size: 10px; opacity: 0.6; margin-top: 4px; text-align: center; }
+  .bucket.bot { background: linear-gradient(180deg, #ff6b6b 0%, #c92a2a 100%); }
+  .bucket.short { background: linear-gradient(180deg, #ffd166 0%, #c8941a 100%); }
+  .bucket.medium { background: linear-gradient(180deg, #43d177 0%, #2aa85b 100%); }
+  .bucket.long { background: linear-gradient(180deg, #6c8dff 0%, #4d6dff 100%); }
+  .bucket.huge { background: linear-gradient(180deg, #9d4edd 0%, #6b46c1 100%); }
+
+  /* Tabelas */
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
   th { opacity: 0.5; font-weight: 600; font-size: 11px; text-transform: uppercase; }
-  .bar { display: inline-block; height: 8px; background: linear-gradient(90deg, #ff6b6b, #ffd166); border-radius: 4px; }
+  .barx { display: inline-block; height: 8px; background: linear-gradient(90deg, #ff6b6b, #ffd166); border-radius: 4px; vertical-align: middle; }
+
+  /* Sparkline (timeline 72h) */
+  .spark { display: flex; gap: 1px; height: 70px; align-items: flex-end; background: rgba(255,255,255,0.04); padding: 6px; border-radius: 10px; }
+  .spark-bar { flex: 1; background: rgba(108,141,255,0.5); border-radius: 2px 2px 0 0; min-height: 1px; transition: height 0.3s; }
+  .spark-bar.zero { background: rgba(255,255,255,0.05); min-height: 1px; }
+  .spark-bar:hover { background: #ffd166; }
+  .spark-meta { font-size: 11px; opacity: 0.5; display: flex; justify-content: space-between; margin-top: 4px; }
+
+  /* Live tail */
+  .live { background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px; font-family: ui-monospace, Menlo, monospace; font-size: 12px; max-height: 280px; overflow-y: auto; }
+  .live .ev { padding: 3px 0; opacity: 0.9; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+  .live .ev .t { opacity: 0.5; }
+  .live .ev .type { color: #ffd166; font-weight: 700; }
+  .live .ev .mode { color: #43d177; }
+  .live .ev .ctx { color: #6c8dff; font-size: 11px; }
+
   .err { background: #5a1a1a; padding: 16px; border-radius: 10px; }
-  .loading { opacity: 0.5; padding: 40px; text-align: center; }
-  input { padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #fff; font-size: 14px; }
-  button { padding: 8px 16px; border-radius: 8px; border: none; background: #6c8dff; color: #fff; font-weight: 700; cursor: pointer; }
+  .loading { opacity: 0.4; padding: 40px; text-align: center; }
   .footer { font-size: 11px; opacity: 0.35; margin-top: 30px; text-align: center; }
+
+  @media (max-width: 540px) {
+    .funnel-row { grid-template-columns: 110px 1fr 50px; }
+    .funnel-row .label { font-size: 12px; }
+    .drop { margin-left: 110px; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>📊 Numinhos — Estatísticas</h1>
-  <div class="sub" id="generatedAt">carregando…</div>
-  <div id="content"><div class="loading">Carregando dados…</div></div>
-  <div class="footer">Telemetria 100% anônima · sem dados pessoais · numinhos.app</div>
+
+<header>
+  <div>
+    <h1>📊 Numinhos — Estatísticas</h1>
+    <div class="sub" id="updated">carregando…</div>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="period">
+    <button data-p="24h">24h</button>
+    <button data-p="7d">7d</button>
+    <button data-p="30d">30d</button>
+    <button data-p="all" class="active">tudo</button>
+  </div>
+  <label class="toggle"><input type="checkbox" id="autoref" checked> auto-refresh 30s</label>
+  <a class="csv-btn" id="csvBtn" download>baixar CSV</a>
+</div>
+
+<div id="content"><div class="loading">Carregando dados…</div></div>
+<div class="footer">Telemetria 100% anônima · sem dados pessoais · numinhos.app</div>
 </div>
 
 <script>
 const KEY = new URLSearchParams(location.search).get('key') || '';
 const content = document.getElementById('content');
+let period = 'all';
+let refreshTimer = null;
 
-function card(label, value, hint, highlight) {
+document.getElementById('csvBtn').href = '/api/stats.csv?key=' + encodeURIComponent(KEY);
+
+document.querySelectorAll('.period button').forEach(b => {
+  b.onclick = () => {
+    period = b.dataset.p;
+    document.querySelectorAll('.period button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    load();
+  };
+});
+
+document.getElementById('autoref').onchange = (e) => {
+  if (e.target.checked) startAuto(); else stopAuto();
+};
+
+function startAuto() { stopAuto(); refreshTimer = setInterval(load, 30000); }
+function stopAuto() { if (refreshTimer) clearInterval(refreshTimer); refreshTimer = null; }
+startAuto();
+
+function card(label, value, hint, highlight, delta) {
+  let d = '';
+  if (delta !== undefined && delta !== null) {
+    const sign = delta > 0 ? '↑ +' : delta < 0 ? '↓ ' : '→ ';
+    const cls = delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat';
+    d = `<div class="delta ${cls}">${sign}${Math.abs(delta)} vs ontem</div>`;
+  }
   return `<div class="card${highlight ? ' highlight' : ''}">
     <div class="label">${label}</div>
     <div class="value">${value}</div>
     ${hint ? `<div class="hint">${hint}</div>` : ''}
+    ${d}
   </div>`;
 }
 
@@ -68,39 +168,92 @@ async function load() {
     return;
   }
   try {
-    const r = await fetch('/api/stats?key=' + encodeURIComponent(KEY));
-    if (r.status === 403) { content.innerHTML = `<div class="err">Chave inválida.</div>`; return; }
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const s = await r.json();
-    render(s);
+    const [s, live] = await Promise.all([
+      fetch('/api/stats?key=' + encodeURIComponent(KEY) + '&period=' + period).then(r => r.ok ? r.json() : Promise.reject(r.status)),
+      fetch('/api/live?key=' + encodeURIComponent(KEY)).then(r => r.ok ? r.json() : { events: [] }),
+    ]);
+    render(s, live);
   } catch (e) {
-    content.innerHTML = `<div class="err">Erro ao carregar: ${e.message}</div>`;
+    content.innerHTML = `<div class="err">Erro ao carregar: ${e}</div>`;
   }
 }
 
-function render(s) {
-  document.getElementById('generatedAt').textContent =
-    'atualizado em ' + new Date(s.geradoEm).toLocaleString('pt-BR');
+function render(s, live) {
+  document.getElementById('updated').textContent =
+    'atualizado em ' + new Date(s.geradoEm).toLocaleString('pt-BR') +
+    ' · período: ' + s.periodo;
 
   let html = '';
 
-  // Pessoas
+  // ===== Pessoas =====
   html += '<h2>👥 Pessoas</h2><div class="grid">';
-  html += card('Abriram o app', s.pessoas.total, 'navegadores únicos');
-  html += card('Jogaram de fato', s.pessoas.jogaramDeFato, 'começaram ≥ 1 fase', true);
+  html += card('Abriram', s.pessoas.total, 'navegadores únicos');
+  html += card('Jogaram de fato', s.pessoas.jogaramDeFato, 'começaram ≥1 fase', true);
   html += card('Novas', s.pessoas.novas, 'primeira visita');
-  html += card('Voltaram', s.pessoas.retornaram, 'em 2+ dias diferentes');
+  html += card('Voltaram', s.pessoas.retornaram, '2+ dias diferentes');
   html += '</div>';
 
-  // Sessões
+  // ===== Hoje vs Ontem =====
+  if (s.hojeVsOntem) {
+    const delta = s.hojeVsOntem.hoje - s.hojeVsOntem.ontem;
+    html += '<h2>📅 Hoje vs Ontem</h2><div class="grid">';
+    html += card('Hoje', s.hojeVsOntem.hoje, 'sessões', false, delta);
+    html += card('Ontem', s.hojeVsOntem.ontem, 'sessões');
+    html += '</div>';
+  }
+
+  // ===== Sessões =====
   html += '<h2>⏱️ Sessões</h2><div class="grid">';
   html += card('Total', s.sessoes.total);
-  html += card('Últimos 7 dias', s.sessoes.ultimos7dias);
-  html += card('Últimas 24h', s.sessoes.ultimas24h);
-  html += card('Tempo médio', fmtTime(s.sessoes.tempoMedioSegundos), 'por sessão');
+  html += card('Últimos 7d', s.sessoes.ultimos7dias);
+  html += card('Últimas 24h', s.sessoes.ultimas24h, '', true);
+  html += card('Tempo médio', fmtTime(s.sessoes.tempoMedioSegundos), 'cuidado — distorcida por bots');
   html += '</div>';
 
-  // Fases
+  // ===== Distribuição de duração =====
+  if (s.sessoes.distribuicao) {
+    const dist = s.sessoes.distribuicao;
+    const labels = Object.keys(dist);
+    const values = labels.map(l => dist[l]);
+    const max = Math.max(1, ...values);
+    const classes = ['bot', 'short', 'medium', 'long', 'huge'];
+    html += '<h2>📏 Duração de sessão (distribuição real)</h2>';
+    html += '<div class="buckets">';
+    labels.forEach((label, i) => {
+      const v = values[i];
+      const h = Math.max(4, (v / max) * 100);
+      html += `<div class="bucket ${classes[i]}" style="height:${h}%">
+        <div class="b-val">${v}</div>
+      </div>`;
+    });
+    html += '</div><div class="buckets" style="height:auto;margin-top:6px">';
+    labels.forEach(l => { html += `<div class="bucket" style="background:transparent;min-height:0"><div class="b-label">${l}</div></div>`; });
+    html += '</div>';
+  }
+
+  // ===== Funil =====
+  if (s.funil && s.funil.length) {
+    const max = Math.max(1, ...s.funil.map(f => f.valor));
+    html += '<h2>🪜 Funil de conversão</h2><div class="funnel">';
+    s.funil.forEach((step, i) => {
+      const pct = max > 0 ? Math.round((step.valor / max) * 100) : 0;
+      html += `<div class="funnel-row">
+        <div class="label">${step.etapa}</div>
+        <div class="bar-wrap"><div class="bar" style="width:${pct}%">${step.valor}</div></div>
+        <div class="pct">${pct}%</div>
+      </div>`;
+      // Drop entre etapas
+      if (i < s.funil.length - 1) {
+        const next = s.funil[i + 1].valor;
+        const drop = step.valor - next;
+        const dropPct = step.valor > 0 ? Math.round((drop / step.valor) * 100) : 0;
+        if (drop > 0) html += `<div class="drop">↓ ${drop} pessoas (-${dropPct}%) não passaram daqui</div>`;
+      }
+    });
+    html += '</div>';
+  }
+
+  // ===== Fases =====
   html += '<h2>🎮 Fases</h2><div class="grid">';
   html += card('Iniciadas', s.fases.iniciadas);
   html += card('Vencidas', s.fases.vencidas);
@@ -109,18 +262,44 @@ function render(s) {
   html += card('Taxa de vitória', s.fases.taxaVitoria, '', true);
   html += '</div>';
 
-  // Modo mais jogado
+  // ===== Modo mais jogado =====
   if (s.modoMaisJogado && s.modoMaisJogado.length) {
-    const max = Math.max(...s.modoMaisJogado.map(m => m.n));
+    const max = Math.max(1, ...s.modoMaisJogado.map(m => m.n));
     html += '<h2>🎯 Modo mais jogado</h2><table><tr><th>Modo</th><th>Vezes</th><th></th></tr>';
     for (const m of s.modoMaisJogado) {
-      html += `<tr><td>${m.mode}</td><td>${m.n}</td>
-        <td><span class="bar" style="width:${(m.n / max) * 200}px"></span></td></tr>`;
+      html += `<tr><td>${m.mode}</td><td>${m.n}</td><td><span class="barx" style="width:${(m.n / max) * 240}px"></span></td></tr>`;
     }
     html += '</table>';
   }
 
-  // Onde desiste
+  // ===== Top fases concluídas =====
+  if (s.topFasesConcluidas && s.topFasesConcluidas.length) {
+    html += '<h2>🏆 Top fases concluídas</h2><table><tr><th>Modo</th><th>Fase</th><th>Vitórias</th></tr>';
+    for (const f of s.topFasesConcluidas) {
+      html += `<tr><td>${f.mode}</td><td>${f.level}</td><td>${f.n}</td></tr>`;
+    }
+    html += '</table>';
+  }
+
+  // ===== Profundidade =====
+  if (s.profundidade && s.profundidade.length) {
+    html += '<h2>📚 Profundidade da sessão (fases por sessão)</h2><table><tr><th>Fases jogadas</th><th>Sessões</th></tr>';
+    for (const d of s.profundidade) {
+      html += `<tr><td>${d.n_fases}</td><td>${d.sessoes}</td></tr>`;
+    }
+    html += '</table>';
+  }
+
+  // ===== Dispositivos =====
+  if (s.dispositivos && s.dispositivos.length) {
+    html += '<h2>📱 Mobile vs Desktop</h2><table><tr><th>Dispositivo</th><th>Pessoas</th></tr>';
+    for (const d of s.dispositivos) {
+      html += `<tr><td>${d.device}</td><td>${d.n}</td></tr>`;
+    }
+    html += '</table>';
+  }
+
+  // ===== Onde desiste =====
   if (s.ondeDesiste && s.ondeDesiste.length) {
     html += '<h2>🚧 Onde a criança mais perde/abandona</h2>';
     html += '<table><tr><th>Modo</th><th>Fase</th><th>Perdeu</th><th>Abandonou</th><th>Venceu</th></tr>';
@@ -130,11 +309,35 @@ function render(s) {
     html += '</table>';
   }
 
-  // Países
+  // ===== Timeline 72h =====
+  if (s.timeline72h && s.timeline72h.length) {
+    const max = Math.max(1, ...s.timeline72h.map(t => t.n));
+    html += '<h2>📈 Sessões nas últimas 72h (por hora)</h2><div class="spark">';
+    for (const t of s.timeline72h) {
+      const h = Math.max(1, (t.n / max) * 100);
+      const cls = t.n === 0 ? 'zero' : '';
+      const time = new Date(t.ts).toLocaleString('pt-BR', { day: '2-digit', hour: '2-digit', minute: '2-digit' });
+      html += `<div class="spark-bar ${cls}" style="height:${h}%" title="${time}: ${t.n} sessões"></div>`;
+    }
+    html += '</div><div class="spark-meta"><span>72h atrás</span><span>agora</span></div>';
+  }
+
+  // ===== Países =====
   if (s.paises && s.paises.length) {
     html += '<h2>🌎 Países</h2><table><tr><th>País</th><th>Pessoas</th></tr>';
     for (const c of s.paises) html += `<tr><td>${c.country}</td><td>${c.n}</td></tr>`;
     html += '</table>';
+  }
+
+  // ===== Live tail =====
+  if (live.events && live.events.length) {
+    html += '<h2>🔴 Últimos 20 eventos (live)</h2><div class="live">';
+    for (const ev of live.events) {
+      const t = new Date(ev.created_at).toLocaleTimeString('pt-BR');
+      const ctx = [ev.mode, ev.level && 'f' + ev.level, ev.country, ev.device_type].filter(Boolean).join(' · ');
+      html += `<div class="ev"><span class="t">${t}</span> <span class="type">${ev.event_type}</span> <span class="ctx">${ctx}</span></div>`;
+    }
+    html += '</div>';
   }
 
   content.innerHTML = html;
